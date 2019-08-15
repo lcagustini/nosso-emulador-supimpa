@@ -1,8 +1,8 @@
 .segment "HEADER"
 .byte "NES" ; signature
 .byte $1A   ; signature
-.byte $01   ; # of 16kb PRG-ROM banks
-.byte $00   ; # of 8kb VROM banks
+.byte $02   ; # of 16kb PRG-ROM banks
+.byte $01   ; # of 8kb VROM banks
 .byte $00   ; ROM control byte one
 .byte $00   ; ROM control byte two
 .byte $00   ; # of 8kb RAM banks
@@ -70,11 +70,21 @@ vblankwait2:
   bit $2002
   bpl vblankwait2
 
+chngbkr:
+  lda #$3F
+  sta $2006 ;first we write the upper byte of the ppu adress we want to ;write to in this case $3F00
+  lda #$00
+  sta $2006 ;now we write the lower byte #$00
+  lda #$2a ;value green = #$2a
+  sta $2007 ;ppudata
+  lda #%00001000
+  sta $2001 ;main screen turn on
 
+loop:
+  jmp loop
 
 nmi:
   rti
-
 irq:
   rti
 
