@@ -13,11 +13,15 @@
 .addr reset
 .addr irq
 
+; how we use ZEROPAGE section ??????
 .segment "ZEROPAGE"               ; is this really supposed to be used like this? what about rs = 1?
 bgPointerLo:  .byte 0             ; pointer variables are declared in RAM
 bgPointerHi:  .byte 0             ; low byte first, high byte immediately after
 counterLo:    .byte 0
 counterHi:    .byte 0
+x_player1:    .byte 0  
+y_player1:    .byte 0
+
 
 .segment "CODE"
 reset:
@@ -139,9 +143,9 @@ LoadPalettesLoop:
   bne LoadPalettesLoop
 
   ; player 1
-  lda #$80
+  lda y_player1
   sta $0200                       ; Y
-  lda #$80
+  lda x_player1
   sta $0203                       ; X
   lda #$00
   sta $0201                       ; tile number = 1
@@ -184,8 +188,50 @@ LoadPalettesLoop:
   lda #%00011110                  ; enable sprites and background
   sta $2001
 
-Forever:
-  jmp Forever                     ; jump back to Forever, infinite loop
+mainLoop:
+  lda #$01
+  sta $4016                       ; poll input
+  lda #$00
+  sta $4016                       ; stop polling input
+
+  ;player 1
+  lda $4016                       ; A
+  lda $4016                       ; B
+  lda $4016                       ; Select
+  lda $4016                       ; Start
+  lda $4016                       ; Up
+  and #%00000001
+  beq skipUp
+  inc y_player1
+skipUp:
+  lda $4016                       ; Down
+  and #%00000001
+  beq skipDown
+  dec y_player1
+skipDown:
+  lda $4016                       ; Left
+  and #%00000001
+  beq skipLeft
+  dec x_player1
+skipLeft:
+  lda $4016                       ; Right
+  and #%00000001
+  beq skipRight
+  inc x_player1
+skipRight:
+
+  ;player 2
+  lda $4017                       ; A
+  lda $4017                       ; B
+  lda $4017                       ; Select
+  lda $4017                       ; Start
+  lda $4017                       ; Up
+  lda $4017                       ; Down
+  lda $4017                       ; Left
+  lda $4017                       ; Right
+
+
+  jmp mainLoop                    ; jump back to Forever, infinite loop
   
 
 nmi:                              ; VBLANK interrupt
@@ -201,7 +247,7 @@ nmi:                              ; VBLANK interrupt
 
 irq:
   rti
- 
+
 ;;;;;;;;;;;;;;
 
 .segment "GFX_DATA"
