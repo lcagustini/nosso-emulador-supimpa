@@ -19,8 +19,8 @@ bgPointerLo:  .byte 0             ; pointer variables are declared in RAM
 bgPointerHi:  .byte 0             ; low byte first, high byte immediately after
 counterLo:    .byte 0
 counterHi:    .byte 0
-x_player1:    .byte 0  
-y_player1:    .byte 0
+x_player1:    .res 1  
+y_player1:    .res 1
 
 
 .segment "CODE"
@@ -63,12 +63,10 @@ clrmem:                           ; Set up RAM before waiting for the second vbl
                                   ; Instead, we set the X poision to 0xFE, meaning it is offscreen
   inx
   bne clrmem
-   
+
 vblankwait2:                      ; Second wait for vblank, PPU is ready after this
   bit $2002
   bpl vblankwait2
-
-
 
   lda #<(background)
   sta bgPointerLo
@@ -142,6 +140,70 @@ LoadPalettesLoop:
   cpx #$20
   bne LoadPalettesLoop
 
+  lda #%10010000                  ; enable NMI, sprites from Pattern 0, background from Pattern 1
+  sta $2000
+
+  lda #%00011110                  ; enable sprites and background
+  sta $2001
+
+mainLoop:
+  lda #$01
+  sta $4016                       ; poll input
+  lda #$00
+  sta $4016                       ; stop polling input
+
+  ;player 1
+  lda $4016                       ; A
+  nop
+  nop
+  nop
+  lda $4016                       ; B
+  nop
+  nop
+  nop
+  lda $4016                       ; Select
+  nop
+  nop
+  nop
+  lda $4016                       ; Start
+  nop
+  nop
+  nop
+  lda $4016                       ; Up
+  and #%00000001
+  cmp #%00000001
+  beq skipUp
+  inc y_player1
+skipUp:
+  lda $4016                       ; Down
+  and #%00000001
+  cmp #%00000001
+  beq skipDown
+  dec y_player1
+skipDown:
+  lda $4016                       ; Left
+  and #%00000001
+  cmp #%00000001
+  beq skipLeft
+  dec x_player1
+skipLeft:
+  lda $4016                       ; Right
+  and #%00000001
+  cmp #%00000001
+  beq skipRight
+  inc x_player1
+skipRight:
+
+  ;player 2
+;  lda $4017                       ; A
+;  lda $4017                       ; B
+;  lda $4017                       ; Select
+;  lda $4017                       ; Start
+;  lda $4017                       ; Up
+;  lda $4017                       ; Down
+;  lda $4017                       ; Left
+;  lda $4017                       ; Right
+
   ; player 1
   lda y_player1
   sta $0200                       ; Y
@@ -181,55 +243,10 @@ LoadPalettesLoop:
   sta $021D                       ; tile number = 1
   lda #$00
   sta $021E                       ; color = 0, no flipping
-  
-  lda #%10010000                  ; enable NMI, sprites from Pattern 0, background from Pattern 1
-  sta $2000
 
-  lda #%00011110                  ; enable sprites and background
-  sta $2001
-
-mainLoop:
-  lda #$01
-  sta $4016                       ; poll input
-  lda #$00
-  sta $4016                       ; stop polling input
-
-  ;player 1
-  lda $4016                       ; A
-  lda $4016                       ; B
-  lda $4016                       ; Select
-  lda $4016                       ; Start
-  lda $4016                       ; Up
-  and #%00000001
-  beq skipUp
-  inc y_player1
-skipUp:
-  lda $4016                       ; Down
-  and #%00000001
-  beq skipDown
-  dec y_player1
-skipDown:
-  lda $4016                       ; Left
-  and #%00000001
-  beq skipLeft
-  dec x_player1
-skipLeft:
-  lda $4016                       ; Right
-  and #%00000001
-  beq skipRight
-  inc x_player1
-skipRight:
-
-  ;player 2
-  lda $4017                       ; A
-  lda $4017                       ; B
-  lda $4017                       ; Select
-  lda $4017                       ; Start
-  lda $4017                       ; Up
-  lda $4017                       ; Down
-  lda $4017                       ; Left
-  lda $4017                       ; Right
-
+vblankwait3:                      ; Second wait for vblank, PPU is ready after this
+  bit $2002
+  bpl vblankwait3
 
   jmp mainLoop                    ; jump back to Forever, infinite loop
   
