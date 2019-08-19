@@ -21,6 +21,8 @@ counterLo:    .byte 0
 counterHi:    .byte 0
 x_player1:    .res 1  
 y_player1:    .res 1
+x_player2:    .res 1
+y_player2:    .res 1
 vblank:       .res 1
 
 
@@ -153,8 +155,10 @@ mainLoop:
 
   lda #$01
   sta $4016                       ; poll input
+  sta $4017                       
   lda #$00
   sta $4016                       ; stop polling input
+  sta $4017                       
 
   ;player 1
   lda $4016                       ; A
@@ -183,15 +187,31 @@ skipLeft:
 skipRight:
 
   ;player 2
-;  lda $4017                       ; A
-;  lda $4017                       ; B
-;  lda $4017                       ; Select
-;  lda $4017                       ; Start
-;  lda $4017                       ; Up
-;  lda $4017                       ; Down
-;  lda $4017                       ; Left
-;  lda $4017                       ; Right
-
+  lda $4017                       ; A
+  lda $4017                       ; B
+  lda $4017                       ; Select
+  lda $4017                       ; Start
+  lda $4017                       ; Up
+  and #%00000001
+  beq skipUp2
+  dec y_player2
+skipUp2:
+  lda $4017                       ; Down
+  and #%00000001
+  beq skipDown2
+  inc y_player2
+skipDown2:
+  lda $4017                       ; Left
+  and #%00000001
+  beq skipLeft2
+  dec x_player2
+skipLeft2:
+  lda $4017                       ; Right
+  and #%00000001
+  beq skipRight2
+  inc x_player2
+skipRight2:
+  
   ; player 1
   lda y_player1
   sta $0200                       ; Y
@@ -203,40 +223,18 @@ skipRight:
   sta $0202                       ; color = 0, no flipping
 
   ; player 2
-  lda #$80
+  lda y_player2
   sta $0204                       ; Y
-  lda #$88
+  lda x_player2
   sta $0207                       ; X
   lda #$01
   sta $0205                       ; tile number = 1
   lda #$00
   sta $0206                       ; color = 0, no flipping
 
-  ; player 3                      
-  lda #$88
-  sta $0208                       ; Y
-  lda #$80
-  sta $020B                       ; X
-  lda #$02
-  sta $0209                       ; tile number = 1
-  lda #$00
-  sta $020A                       ; color = 0, no flipping
-
-  ; player 4                      
-  lda #$88
-  sta $021C                       ; Y
-  lda #$88
-  sta $021F                       ; X
-  lda #$03
-  sta $021D                       ; tile number = 1
-  lda #$00
-  sta $021E                       ; color = 0, no flipping
-
 :
   lda vblank
   beq :-
-
-
   jmp mainLoop                    ; jump back to Forever, infinite loop
   
 
