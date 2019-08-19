@@ -21,6 +21,7 @@ counterLo:    .byte 0
 counterHi:    .byte 0
 x_player1:    .res 1  
 y_player1:    .res 1
+vblank:       .res 1
 
 
 .segment "CODE"
@@ -77,7 +78,7 @@ vblankwait2:                      ; Second wait for vblank, PPU is ready after t
   lda #$04
   sta counterHi                   ; count = $0400 = 1KB, the whole screen at once including attributes
 LoadBackground:
-  lda $2002                       ; reset the latch to high
+  lda $2002                       ; notifies cpu that we want to read/write the high value. (reset latch to high)
   lda #$20
   sta $2006                       ; first we write the upper byte of the ppu adress we want to ;write to in this case $3F00
   lda #$00
@@ -113,7 +114,7 @@ LoadBackgroundLoop:
   bne LoadBackgroundLoop          ; if the loop counter isn't 0000, keep copying
 
 LoadAttribute:
-  ;lda $2002                      ; we don't need to reset the latch since it's already on high
+  lda $2002                       ; we don't need to reset the latch since it's already on high
   lda #$23
   sta $2006                       ; first we write the upper byte of the ppu adress we want to write to
   lda #$C0
@@ -127,7 +128,7 @@ LoadAttributeLoop:
   bne LoadAttributeLoop
 
 LoadPalettes:
-  ;lda $2002                      ; we don't need to reset the latch since it's already on high
+  lda $2002                       ; we don't need to reset the latch since it's already on high
   lda #$3F
   sta $2006                       ; first we write the upper byte of the ppu adress we want to write to
   lda #$00
@@ -147,6 +148,9 @@ LoadPalettesLoop:
   sta $2001
 
 mainLoop:
+  lda #$00
+  sta vblank                      ; reset vblank lock
+
   lda #$01
   sta $4016                       ; poll input
   lda #$00
@@ -154,42 +158,26 @@ mainLoop:
 
   ;player 1
   lda $4016                       ; A
-  nop
-  nop
-  nop
   lda $4016                       ; B
-  nop
-  nop
-  nop
   lda $4016                       ; Select
-  nop
-  nop
-  nop
   lda $4016                       ; Start
-  nop
-  nop
-  nop
   lda $4016                       ; Up
   and #%00000001
-  cmp #%00000001
   beq skipUp
-  inc y_player1
+  dec y_player1
 skipUp:
   lda $4016                       ; Down
   and #%00000001
-  cmp #%00000001
   beq skipDown
-  dec y_player1
+  inc y_player1
 skipDown:
   lda $4016                       ; Left
   and #%00000001
-  cmp #%00000001
   beq skipLeft
   dec x_player1
 skipLeft:
   lda $4016                       ; Right
   and #%00000001
-  cmp #%00000001
   beq skipRight
   inc x_player1
 skipRight:
@@ -244,9 +232,10 @@ skipRight:
   lda #$00
   sta $021E                       ; color = 0, no flipping
 
-vblankwait3:                      ; Second wait for vblank, PPU is ready after this
-  bit $2002
-  bpl vblankwait3
+:
+  lda vblank
+  beq :-
+
 
   jmp mainLoop                    ; jump back to Forever, infinite loop
   
@@ -260,6 +249,8 @@ nmi:                              ; VBLANK interrupt
   lda #$00                        ; Scroll position!! This is needed because using PPUADDR overwrites PPUSCROLL!!
   sta $2005
   sta $2005
+  lda #$01
+  sta vblank
   rti
 
 irq:
