@@ -15,13 +15,15 @@
 
 ; how we use ZEROPAGE section ??????
 .segment "ZEROPAGE"               ; is this really supposed to be used like this? what about rs = 1?
-bgPointerLo:  .res 1             ; pointer variables are declared in RAM
-bgPointerHi:  .res 1             ; low byte first, high byte immediately after
-counterLo:    .res 1
-counterHi:    .res 1
-x_player1:    .res 1
+bgPointerLo:  .byte 0             ; pointer variables are declared in RAM
+bgPointerHi:  .byte 0             ; low byte first, high byte immediately after
+counterLo:    .byte 0
+counterHi:    .byte 0
+x_player1:    .res 1  
 y_player1:    .res 1
-gamepad:      .res 1
+x_player2:    .res 1
+y_player2:    .res 1
+vblank:       .res 1
 
 
 .segment "CODE"
@@ -69,8 +71,6 @@ vblankwait2:                      ; Second wait for vblank, PPU is ready after t
   bit $2002
   bpl vblankwait2
 
-
-
   lda #<(background)
   sta bgPointerLo
   lda #>(background)
@@ -80,7 +80,7 @@ vblankwait2:                      ; Second wait for vblank, PPU is ready after t
   lda #$04
   sta counterHi                   ; count = $0400 = 1KB, the whole screen at once including attributes
 LoadBackground:
-  lda $2002                       ; reset the latch to high
+  lda $2002                       ; notifies cpu that we want to read/write the high value. (reset latch to high)
   lda #$20
   sta $2006                       ; first we write the upper byte of the ppu adress we want to ;write to in this case $3F00
   lda #$00
@@ -116,7 +116,7 @@ LoadBackgroundLoop:
   bne LoadBackgroundLoop          ; if the loop counter isn't 0000, keep copying
 
 LoadAttribute:
-  ;lda $2002                      ; we don't need to reset the latch since it's already on high
+  lda $2002                       ; we don't need to reset the latch since it's already on high
   lda #$23
   sta $2006                       ; first we write the upper byte of the ppu adress we want to write to
   lda #$C0
@@ -130,7 +130,7 @@ LoadAttributeLoop:
   bne LoadAttributeLoop
 
 LoadPalettes:
-  ;lda $2002                      ; we don't need to reset the latch since it's already on high
+  lda $2002                       ; we don't need to reset the latch since it's already on high
   lda #$3F
   sta $2006                       ; first we write the upper byte of the ppu adress we want to write to
   lda #$00
@@ -143,6 +143,75 @@ LoadPalettesLoop:
   cpx #$20
   bne LoadPalettesLoop
 
+  lda #%10010000                  ; enable NMI, sprites from Pattern 0, background from Pattern 1
+  sta $2000
+
+  lda #%00011110                  ; enable sprites and background
+  sta $2001
+
+mainLoop:
+  lda #$00
+  sta vblank                      ; reset vblank lock
+
+  lda #$01
+  sta $4016                       ; poll input
+  sta $4017                       
+  lda #$00
+  sta $4016                       ; stop polling input
+  sta $4017                       
+
+  ;player 1
+  lda $4016                       ; A
+  lda $4016                       ; B
+  lda $4016                       ; Select
+  lda $4016                       ; Start
+  lda $4016                       ; Up
+  and #%00000001
+  beq skipUp
+  dec y_player1
+skipUp:
+  lda $4016                       ; Down
+  and #%00000001
+  beq skipDown
+  inc y_player1
+skipDown:
+  lda $4016                       ; Left
+  and #%00000001
+  beq skipLeft
+  dec x_player1
+skipLeft:
+  lda $4016                       ; Right
+  and #%00000001
+  beq skipRight
+  inc x_player1
+skipRight:
+
+  ;player 2
+  lda $4017                       ; A
+  lda $4017                       ; B
+  lda $4017                       ; Select
+  lda $4017                       ; Start
+  lda $4017                       ; Up
+  and #%00000001
+  beq skipUp2
+  dec y_player2
+skipUp2:
+  lda $4017                       ; Down
+  and #%00000001
+  beq skipDown2
+  inc y_player2
+skipDown2:
+  lda $4017                       ; Left
+  and #%00000001
+  beq skipLeft2
+  dec x_player2
+skipLeft2:
+  lda $4017                       ; Right
+  and #%00000001
+  beq skipRight2
+  inc x_player2
+skipRight2:
+  
   ; player 1
   lda y_player1
   sta $0200                       ; Y
@@ -154,113 +223,19 @@ LoadPalettesLoop:
   sta $0202                       ; color = 0, no flipping
 
   ; player 2
-  lda #$80
+  lda y_player2
   sta $0204                       ; Y
-  lda #$88
+  lda x_player2
   sta $0207                       ; X
   lda #$01
   sta $0205                       ; tile number = 1
   lda #$00
   sta $0206                       ; color = 0, no flipping
 
-  ; player 3
-  lda #$88
-  sta $0208                       ; Y
-  lda #$80
-  sta $020B                       ; X
-  lda #$02
-  sta $0209                       ; tile number = 1
-  lda #$00
-  sta $020A                       ; color = 0, no flipping
-
-  ; player 4
-  lda #$88
-  sta $021C                       ; Y
-  lda #$88
-  sta $021F                       ; X
-  lda #$03
-  sta $021D                       ; tile number = 1
-  lda #$00
-  sta $021E                       ; color = 0, no flipping
-
-  lda #%10010000                  ; enable NMI, sprites from Pattern 0, background from Pattern 1
-  sta $2000
-
-  lda #%00011110                  ; enable sprites and background
-  sta $2001
-
-mainLoop:
-  ; player 1
-  lda y_player1
-  sta $0200                       ; Y
-  lda x_player1
-  sta $0203                       ; X
-  lda #$00
-  sta $0201                       ; tile number = 1
-  lda #$00
-  sta $0202                       ; color = 0, no flipping
-
-  jsr gamepad_poll
-
-  lda gamepad
-  and #PAD_U
-  beq :+
-    dec y_player1
-  :
-
-  lda gamepad
-  and #PAD_D
-  beq :+
-    inc y_player1
-  :
-
-  lda gamepad
-  and #PAD_L
-  beq :+
-    dec x_player1
-  :
-
-  lda gamepad
-  and #PAD_R
-  beq :+
-    inc x_player1
-  :
-
-  :                      ; First wait for vblank to make sure PPU is ready
-  bit $2002
-  bpl :-
-
+:
+  lda vblank
+  beq :-
   jmp mainLoop                    ; jump back to Forever, infinite loop
-
-PAD_A      = $01
-PAD_B      = $02
-PAD_SELECT = $04
-PAD_START  = $08
-PAD_U      = $10
-PAD_D      = $20
-PAD_L      = $40
-PAD_R      = $80
-gamepad_poll:
-  ; strobe the gamepad to latch current button state
-  lda #1
-  sta $4016
-  lda #0
-  sta $4016
-  ; read 8 bytes from the interface at $4016
-  ldx #8
-  :
-    pha
-    lda $4016
-    ; combine low two bits and store in carry bit
-    and #%00000011
-    cmp #%00000001
-    pla
-    ; rotate carry into gamepad variable
-    ror
-    dex
-    bne :-
-  sta gamepad
-  rts
 
 ;;;;;;;;;;;;;;
 
@@ -273,6 +248,8 @@ nmi:                              ; VBLANK interrupt
   lda #$00                        ; Scroll position!! This is needed because using PPUADDR overwrites PPUSCROLL!!
   sta $2005
   sta $2005
+  lda #$01
+  sta vblank
   rti
 
 irq:
