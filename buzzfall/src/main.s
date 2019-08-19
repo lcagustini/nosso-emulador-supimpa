@@ -15,12 +15,13 @@
 
 ; how we use ZEROPAGE section ??????
 .segment "ZEROPAGE"               ; is this really supposed to be used like this? what about rs = 1?
-bgPointerLo:  .byte 0             ; pointer variables are declared in RAM
-bgPointerHi:  .byte 0             ; low byte first, high byte immediately after
-counterLo:    .byte 0
-counterHi:    .byte 0
-x_player1:    .byte 0  
-y_player1:    .byte 0
+bgPointerLo:  .res 1             ; pointer variables are declared in RAM
+bgPointerHi:  .res 1             ; low byte first, high byte immediately after
+counterLo:    .res 1
+counterHi:    .res 1
+x_player1:    .res 1
+y_player1:    .res 1
+gamepad:      .res 1
 
 
 .segment "CODE"
@@ -63,7 +64,7 @@ clrmem:                           ; Set up RAM before waiting for the second vbl
                                   ; Instead, we set the X poision to 0xFE, meaning it is offscreen
   inx
   bne clrmem
-   
+
 vblankwait2:                      ; Second wait for vblank, PPU is ready after this
   bit $2002
   bpl vblankwait2
@@ -88,7 +89,7 @@ LoadBackground:
 LoadBackgroundLoop:
   lda (bgPointerLo), y
   sta $2007
-  
+
   ;;;;; INCREMENT 16-bit ;;;;;
   lda bgPointerLo
   clc
@@ -162,7 +163,7 @@ LoadPalettesLoop:
   lda #$00
   sta $0206                       ; color = 0, no flipping
 
-  ; player 3                      
+  ; player 3
   lda #$88
   sta $0208                       ; Y
   lda #$80
@@ -172,7 +173,7 @@ LoadPalettesLoop:
   lda #$00
   sta $020A                       ; color = 0, no flipping
 
-  ; player 4                      
+  ; player 4
   lda #$88
   sta $021C                       ; Y
   lda #$88
@@ -181,7 +182,7 @@ LoadPalettesLoop:
   sta $021D                       ; tile number = 1
   lda #$00
   sta $021E                       ; color = 0, no flipping
-  
+
   lda #%10010000                  ; enable NMI, sprites from Pattern 0, background from Pattern 1
   sta $2000
 
@@ -189,50 +190,79 @@ LoadPalettesLoop:
   sta $2001
 
 mainLoop:
-  lda #$01
-  sta $4016                       ; poll input
+  ; player 1
+  lda y_player1
+  sta $0200                       ; Y
+  lda x_player1
+  sta $0203                       ; X
   lda #$00
-  sta $4016                       ; stop polling input
+  sta $0201                       ; tile number = 1
+  lda #$00
+  sta $0202                       ; color = 0, no flipping
 
-  ;player 1
-  lda $4016                       ; A
-  lda $4016                       ; B
-  lda $4016                       ; Select
-  lda $4016                       ; Start
-  lda $4016                       ; Up
-  and #%00000001
-  beq skipUp
-  inc y_player1
-skipUp:
-  lda $4016                       ; Down
-  and #%00000001
-  beq skipDown
-  dec y_player1
-skipDown:
-  lda $4016                       ; Left
-  and #%00000001
-  beq skipLeft
-  dec x_player1
-skipLeft:
-  lda $4016                       ; Right
-  and #%00000001
-  beq skipRight
-  inc x_player1
-skipRight:
+  jsr gamepad_poll
 
-  ;player 2
-  lda $4017                       ; A
-  lda $4017                       ; B
-  lda $4017                       ; Select
-  lda $4017                       ; Start
-  lda $4017                       ; Up
-  lda $4017                       ; Down
-  lda $4017                       ; Left
-  lda $4017                       ; Right
+  lda gamepad
+  and #PAD_U
+  beq :+
+    dec y_player1
+  :
 
+  lda gamepad
+  and #PAD_D
+  beq :+
+    inc y_player1
+  :
+
+  lda gamepad
+  and #PAD_L
+  beq :+
+    dec x_player1
+  :
+
+  lda gamepad
+  and #PAD_R
+  beq :+
+    inc x_player1
+  :
+
+  :                      ; First wait for vblank to make sure PPU is ready
+  bit $2002
+  bpl :-
 
   jmp mainLoop                    ; jump back to Forever, infinite loop
-  
+
+PAD_A      = $01
+PAD_B      = $02
+PAD_SELECT = $04
+PAD_START  = $08
+PAD_U      = $10
+PAD_D      = $20
+PAD_L      = $40
+PAD_R      = $80
+gamepad_poll:
+  ; strobe the gamepad to latch current button state
+  lda #1
+  sta $4016
+  lda #0
+  sta $4016
+  ; read 8 bytes from the interface at $4016
+  ldx #8
+  :
+    pha
+    lda $4016
+    ; combine low two bits and store in carry bit
+    and #%00000011
+    cmp #%00000001
+    pla
+    ; rotate carry into gamepad variable
+    ror
+    dex
+    bne :-
+  sta gamepad
+  rts
+
+;;;;;;;;;;;;;;
 
 nmi:                              ; VBLANK interrupt
   lda #$00
@@ -253,8 +283,8 @@ irq:
 .segment "GFX_DATA"
 .include "gfx.s"
 
-;;;;;;;;;;;;;;  
-  
+;;;;;;;;;;;;;;
+
 .segment "CHARS"
 .incbin "mario.chr"               ; includes 8KB graphics file from SMB1
 
