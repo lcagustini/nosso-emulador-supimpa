@@ -263,6 +263,8 @@ irq:
 ;;;;;;;;;;;;;;
 
 .segment "CHARS"
-.incbin "gfx/test.chr"
+;.incbin "gfx/test.chr"
 ;.incbin "gfx/mario.chr"               ; includes 8KB graphics file from SMB1
-
+.incbin "gfx/bg_test.chr"
+.res 4064
+.incbin "gfx/bg_test.chr"
