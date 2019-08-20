@@ -2,11 +2,17 @@
 #include <string.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "md5.h"
 
 int grid_pos = 0;
 char *grid;
 int num_colors = 0;
 int color_map[4] = {-1};
+struct hash{
+	int h0, h1, h2, h3;
+};
+char nametable[1024] = {0};
+
 
 float color_distance(int a, int b) {
     int ar = (a >> 16) & 0xff;
@@ -67,6 +73,8 @@ int tile_to_grid(unsigned char *data) {
 
 // TODO: ignoring repeated tiles
 int main(int argc, char **argv) {
+
+
     if (argc > 3) {
         num_colors = 1;
         color_map[0] = strtol(argv[3], NULL, 16);
@@ -83,11 +91,18 @@ int main(int argc, char **argv) {
         0xF8D878, 0xD8F878, 0xB8F8B8, 0xB8F8D8, 0x00FCFC, 0xF8D8F8, 0x000000, 0x000000,
     };
 
+    struct hash hashes[512] = {0};
+
     int w, h, n;
     unsigned char *data = stbi_load(argv[1], &w, &h, &n, 3);
+    if (w > 256 || h > 240) {
+    	fprintf(stderr, "Image too big\n");
+    	exit(1);
+    }
 
     grid = malloc(w*h/4);
 
+    int current_tile = 0;
     unsigned char tile_data[64*3] = {-1};
     for (int j = 0; j < h; j+=8) {
         for (int i = 0; i < w; i+=8) {
@@ -98,17 +113,38 @@ int main(int argc, char **argv) {
                     tile_data[(l%8)*8*3+(k%8)*3+2] = data[l*w*3+k*3+2];
                 }
             }
-            tile_to_grid(tile_data);
+            md5(tile_data,64*3);
+            int exists = 0;
+            for (int l = 0; l < current_tile; l++) {
+            	if (hashes[l].h0 == h0 && hashes[l].h1 == h1 &&
+            		hashes[l].h2 == h2 && hashes[l].h3 == h3) {
+            		exists = 1;
+            		nametable[(w/8)*(j/8)+i/8] = l;
+            		break;
+            	}
+            }
+            if (!exists) {
+            	nametable[(w/8)*(j/8)+i/8] = current_tile;
+	            hashes[current_tile].h0 = h0;
+	            hashes[current_tile].h1 = h1;
+	            hashes[current_tile].h2 = h2;
+	            hashes[current_tile].h3 = h3;
+	            current_tile++;
+	            if (current_tile >= 256) {
+	            	fprintf(stderr, "Too many unique tiles\n");
+	            	exit(1);
+	            }
+            	tile_to_grid(tile_data);
+            }
         }
     }
 
     FILE *out = fopen(argv[2], "wb");
-    fwrite(grid, w*h/4, 1, out);
+    fwrite(grid, current_tile*16, 1, out);
     fclose(out);
 
     free(grid);
-
-
+    printf("Palette: \n");
     printf(".byte ");
     for (int i = 0; i < 4; i++) {
         float min_dist = color_distance(color_map[i], nes_palette[0]);
@@ -124,6 +160,15 @@ int main(int argc, char **argv) {
         if (i != 3) printf(",");
     }
     printf("\n");
+    printf("Nametable: \n");
+    for (int i = 0; i < current_tile ; i += 16) {
+		printf(".byte ");
+    	for (int j = 0; j < 16; j++) {
+    		printf("%02x", nametable[i+j]);
+    		if (j != 15) printf(",");
+    	}
+    	printf("\n");
+    }
 
     return 0;
 }
