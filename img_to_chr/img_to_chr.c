@@ -46,6 +46,10 @@ int tile_to_grid(unsigned char *data) {
             }
 
             if (index == -1) {
+                if (num_colors >= 4) {
+                	fprintf(stderr, "Error: Too many colors. Maximum 4.\n");
+                	exit(1);
+                }
                 color_map[num_colors] = color;
                 index = num_colors;
                 num_colors++;
@@ -102,7 +106,7 @@ int main(int argc, char **argv) {
     int w, h, n;
     unsigned char *data = stbi_load(argv[1], &w, &h, &n, 3);
     if (w > 256 || h > 240) {
-    	fprintf(stderr, "Image too big\n");
+    	fprintf(stderr, "Error: Image too large. Maximum size is 256x240\n");
     	exit(1);
     }
 
@@ -137,7 +141,7 @@ int main(int argc, char **argv) {
 	            hashes[current_tile].h3 = h3;
 	            current_tile++;
 	            if (current_tile >= 256) {
-	            	fprintf(stderr, "Too many unique tiles\n");
+	            	fprintf(stderr, "Error: Too many unique tiles.\n");
 	            	exit(1);
 	            }
             	tile_to_grid(tile_data);
@@ -162,15 +166,16 @@ int main(int argc, char **argv) {
                 min_dist_index = j;
             }
         }
-        printf("$%02x", min_dist_index);
+        if (min_dist_index == 0x0D) min_dist_index = 0x0F;
+        printf("$%02X", min_dist_index);
         if (i != 3) printf(",");
     }
     printf("\n");
     printf("Nametable: \n");
-    for (int i = 0; i < current_tile ; i += 16) {
+    for (int i = 0; i < w*h/64; i += 16) {
 		printf(".byte ");
     	for (int j = 0; j < 16; j++) {
-    		printf("%02x", nametable[i+j]);
+    		printf("%02X", nametable[i+j]);
     		if (j != 15) printf(",");
     	}
     	printf("\n");
