@@ -74,6 +74,12 @@ int tile_to_grid(unsigned char *data) {
 // TODO: ignoring repeated tiles
 int main(int argc, char **argv) {
 
+	if (argc < 3) {
+		printf("Usage: ./img_to_chr.x input_image output.chr [first_color_hex]\n");
+		printf("Options:\n");
+		printf("  [first_color_hex]\t\tThis color will be color 0 of the palette\n");
+		exit(0);
+	}
 
     if (argc > 3) {
         num_colors = 1;
