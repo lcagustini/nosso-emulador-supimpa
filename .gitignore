@@ -53,3 +53,5 @@ Mkfile.old
 dkms.conf
 
 *.nes
+img_to_chr/*.png
+img_to_chr/*.chr
