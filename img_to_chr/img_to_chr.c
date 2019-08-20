@@ -4,6 +4,8 @@
 #include "stb_image.h"
 #include "md5.h"
 
+// TODO: attribute table, support for 13 colors
+
 int grid_pos = 0;
 char *grid;
 int num_colors = 0;
@@ -75,7 +77,6 @@ int tile_to_grid(unsigned char *data) {
     //printf("\n");
 }
 
-// TODO: ignoring repeated tiles
 int main(int argc, char **argv) {
 
 	if (argc < 3) {
