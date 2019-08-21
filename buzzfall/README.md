@@ -11,9 +11,13 @@ The game will be developed in 6502 assembly.
 # How to compile and run
 
 1) Install cc65
-- Linux
-```sudo apt-get install -y cc65 ```  
-```yay -y cc65 ```
+- Linux  
+    ```
+    sudo apt-get install -y cc65
+    ```  
+    ```
+    yay -y cc65
+    ```
 
 - MacOS
     ```
@@ -22,9 +26,13 @@ The game will be developed in 6502 assembly.
     make
     ```
 2) Install fceux emulator
-- Linux
-    ```sudo apt-get install fceux```  
-    ```pacman -y fceux```
+- Linux  
+    ```
+    sudo apt-get install fceux
+    ```  
+    ```
+    pacman -y fceux
+    ```
 - MacOS
     ```
     brew install fceux
