@@ -19,12 +19,12 @@ bgPointerLo:  .byte 0             ; pointer variables are declared in RAM
 bgPointerHi:  .byte 0             ; low byte first, high byte immediately after
 counterLo:    .byte 0
 counterHi:    .byte 0
-x_player1:    .res 1  
+x_player1:    .res 1
 y_player1:    .res 1
 x_player2:    .res 1
 y_player2:    .res 1
 vblank:       .res 1
-
+add_buffer:   .res 1
 
 .segment "CODE"
 reset:
@@ -155,10 +155,10 @@ mainLoop:
 
   lda #$01
   sta $4016                       ; poll input
-  sta $4017                       
+  sta $4017
   lda #$00
   sta $4016                       ; stop polling input
-  sta $4017                       
+  sta $4017
 
   ;player 1
   lda $4016                       ; A
@@ -167,8 +167,191 @@ mainLoop:
   lda $4016                       ; Start
   lda $4016                       ; Up
   and #%00000001
-  beq skipUp
+  bne :+
+  jmp skipUp
+  :
   dec y_player1
+  lda y_player1
+  lsr
+  lsr
+  lsr
+
+  cmp #8
+  bpl background_switch_1
+  ;background
+  asl
+  asl
+  asl
+  asl
+  asl
+  sta add_buffer
+  lda x_player1
+  clc
+  adc #7
+  lsr
+  lsr
+  lsr
+  clc
+  adc add_buffer
+  tax
+  lda background, x
+  beq :+
+  lda x_player1
+  lsr
+  lsr
+  lsr
+  clc
+  adc add_buffer
+  tax
+  lda background, x
+  beq :+
+  jmp skipUp
+:
+  lda y_player1
+  and #%111
+  sta add_buffer
+  lda #8
+  sec
+  sbc add_buffer
+  clc
+  adc y_player1
+  sta y_player1
+
+
+  jmp background_switch_end
+background_switch_1:
+  cmp #16
+  bpl background_switch_2
+  ;background1
+  sec
+  sbc #8
+  asl
+  asl
+  asl
+  asl
+  asl
+  sta add_buffer
+  lda x_player1
+  clc
+  adc #7
+  lsr
+  lsr
+  lsr
+  clc
+  adc add_buffer
+  tax
+  lda background1, x
+  beq :+
+  lda x_player1
+  lsr
+  lsr
+  lsr
+  clc
+  adc add_buffer
+  tax
+  lda background1, x
+  beq :+
+  jmp skipUp
+:
+  lda y_player1
+  and #%111
+  sta add_buffer
+  lda #8
+  sec
+  sbc add_buffer
+  clc
+  adc y_player1
+  sta y_player1
+
+  jmp background_switch_end
+background_switch_2:
+  cmp #24
+  bpl background_switch_3
+  ;background2
+  sec
+  sbc #16
+  asl
+  asl
+  asl
+  asl
+  asl
+  sta add_buffer
+  lda x_player1
+  clc
+  adc #7
+  lsr
+  lsr
+  lsr
+  clc
+  adc add_buffer
+  tax
+  lda background2, x
+  beq :+
+  lda x_player1
+  lsr
+  lsr
+  lsr
+  clc
+  adc add_buffer
+  tax
+  lda background2, x
+  beq :+
+  jmp skipUp
+:
+  lda y_player1
+  and #%111
+  sta add_buffer
+  lda #8
+  sec
+  sbc add_buffer
+  clc
+  adc y_player1
+  sta y_player1
+
+  jmp background_switch_end
+background_switch_3:
+  ;background3
+  sec
+  sbc #24
+  asl
+  asl
+  asl
+  asl
+  asl
+  sta add_buffer
+  lda x_player1
+  clc
+  adc #7
+  lsr
+  lsr
+  lsr
+  clc
+  adc add_buffer
+  tax
+  lda background3, x
+  beq :+
+  lda x_player1
+  lsr
+  lsr
+  lsr
+  clc
+  adc add_buffer
+  tax
+  lda background3, x
+  beq :+
+  jmp skipUp
+:
+  lda y_player1
+  and #%111
+  sta add_buffer
+  lda #8
+  sec
+  sbc add_buffer
+  clc
+  adc y_player1
+  sta y_player1
+background_switch_end:
+
 skipUp:
   lda $4016                       ; Down
   and #%00000001
@@ -211,7 +394,7 @@ skipLeft2:
   beq skipRight2
   inc x_player2
 skipRight2:
-  
+
   ; player 1
   lda y_player1
   sta $0200                       ; Y
@@ -263,9 +446,7 @@ irq:
 ;;;;;;;;;;;;;;
 
 .segment "CHARS"
-;.incbin "gfx/test.chr"
-;.incbin "gfx/mario.chr"               ; includes 8KB graphics file from SMB1
 .incbin "gfx/arqueiro.chr"
 .incbin "gfx/arqueiro.chr"
 .res 4064
-.incbin "gfx/bg_test.chr"
+.incbin "gfx/bg.chr"
