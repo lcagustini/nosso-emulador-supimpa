@@ -15,16 +15,28 @@
 
 ; how we use ZEROPAGE section ??????
 .segment "ZEROPAGE"               ; is this really supposed to be used like this? what about rs = 1?
-bgPointerLo:  .byte 0             ; pointer variables are declared in RAM
-bgPointerHi:  .byte 0             ; low byte first, high byte immediately after
-counterLo:    .byte 0
-counterHi:    .byte 0
+bgPointerLo:  .res 1             ; pointer variables are declared in RAM
+bgPointerHi:  .res 1             ; low byte first, high byte immediately after
+
+counterLo:    .res 1
+counterHi:    .res 1
+
 x_player1:    .res 1
 y_player1:    .res 1
+
 x_player2:    .res 1
 y_player2:    .res 1
+
 vblank:       .res 1
+
 add_buffer:   .res 1
+add_buffer2:  .res 1
+
+; check_collision args
+check_collision_bg_addrs: .res 2
+check_collision_y_addrs:  .res 2
+check_collision_x_addrs:  .res 2
+check_collision_dir:      .res 1 ; 1-> VERTICAL, 0-> HORIZONTAL
 
 .segment "CODE"
 reset:
@@ -149,251 +161,19 @@ LoadPalettesLoop:
   lda #%00011110                  ; enable sprites and background
   sta $2001
 
+; Put players inside the walls
+  lda #20
+  sta x_player1
+  sta y_player1
+  sta x_player2
+  sta y_player2
+
 mainLoop:
   lda #$00
   sta vblank                      ; reset vblank lock
 
-  lda #$01
-  sta $4016                       ; poll input
-  sta $4017
-  lda #$00
-  sta $4016                       ; stop polling input
-  sta $4017
-
-  ;player 1
-  lda $4016                       ; A
-  lda $4016                       ; B
-  lda $4016                       ; Select
-  lda $4016                       ; Start
-  lda $4016                       ; Up
-  and #%00000001
-  bne :+
-  jmp skipUp
-  :
-  dec y_player1
-  lda y_player1
-  lsr
-  lsr
-  lsr
-
-  cmp #8
-  bpl background_switch_1
-  ;background
-  asl
-  asl
-  asl
-  asl
-  asl
-  sta add_buffer
-  lda x_player1
-  clc
-  adc #7
-  lsr
-  lsr
-  lsr
-  clc
-  adc add_buffer
-  tax
-  lda background, x
-  beq :+
-  lda x_player1
-  lsr
-  lsr
-  lsr
-  clc
-  adc add_buffer
-  tax
-  lda background, x
-  beq :+
-  jmp skipUp
-:
-  lda y_player1
-  and #%111
-  sta add_buffer
-  lda #8
-  sec
-  sbc add_buffer
-  clc
-  adc y_player1
-  sta y_player1
-
-
-  jmp background_switch_end
-background_switch_1:
-  cmp #16
-  bpl background_switch_2
-  ;background1
-  sec
-  sbc #8
-  asl
-  asl
-  asl
-  asl
-  asl
-  sta add_buffer
-  lda x_player1
-  clc
-  adc #7
-  lsr
-  lsr
-  lsr
-  clc
-  adc add_buffer
-  tax
-  lda background1, x
-  beq :+
-  lda x_player1
-  lsr
-  lsr
-  lsr
-  clc
-  adc add_buffer
-  tax
-  lda background1, x
-  beq :+
-  jmp skipUp
-:
-  lda y_player1
-  and #%111
-  sta add_buffer
-  lda #8
-  sec
-  sbc add_buffer
-  clc
-  adc y_player1
-  sta y_player1
-
-  jmp background_switch_end
-background_switch_2:
-  cmp #24
-  bpl background_switch_3
-  ;background2
-  sec
-  sbc #16
-  asl
-  asl
-  asl
-  asl
-  asl
-  sta add_buffer
-  lda x_player1
-  clc
-  adc #7
-  lsr
-  lsr
-  lsr
-  clc
-  adc add_buffer
-  tax
-  lda background2, x
-  beq :+
-  lda x_player1
-  lsr
-  lsr
-  lsr
-  clc
-  adc add_buffer
-  tax
-  lda background2, x
-  beq :+
-  jmp skipUp
-:
-  lda y_player1
-  and #%111
-  sta add_buffer
-  lda #8
-  sec
-  sbc add_buffer
-  clc
-  adc y_player1
-  sta y_player1
-
-  jmp background_switch_end
-background_switch_3:
-  ;background3
-  sec
-  sbc #24
-  asl
-  asl
-  asl
-  asl
-  asl
-  sta add_buffer
-  lda x_player1
-  clc
-  adc #7
-  lsr
-  lsr
-  lsr
-  clc
-  adc add_buffer
-  tax
-  lda background3, x
-  beq :+
-  lda x_player1
-  lsr
-  lsr
-  lsr
-  clc
-  adc add_buffer
-  tax
-  lda background3, x
-  beq :+
-  jmp skipUp
-:
-  lda y_player1
-  and #%111
-  sta add_buffer
-  lda #8
-  sec
-  sbc add_buffer
-  clc
-  adc y_player1
-  sta y_player1
-background_switch_end:
-
-skipUp:
-  lda $4016                       ; Down
-  and #%00000001
-  beq skipDown
-  inc y_player1
-skipDown:
-  lda $4016                       ; Left
-  and #%00000001
-  beq skipLeft
-  dec x_player1
-skipLeft:
-  lda $4016                       ; Right
-  and #%00000001
-  beq skipRight
-  inc x_player1
-skipRight:
-
-  ;player 2
-  lda $4017                       ; A
-  lda $4017                       ; B
-  lda $4017                       ; Select
-  lda $4017                       ; Start
-  lda $4017                       ; Up
-  and #%00000001
-  beq skipUp2
-  dec y_player2
-skipUp2:
-  lda $4017                       ; Down
-  and #%00000001
-  beq skipDown2
-  inc y_player2
-skipDown2:
-  lda $4017                       ; Left
-  and #%00000001
-  beq skipLeft2
-  dec x_player2
-skipLeft2:
-  lda $4017                       ; Right
-  and #%00000001
-  beq skipRight2
-  inc x_player2
-skipRight2:
+  jsr input_player_1
+  jsr input_player_2
 
   ; player 1
   lda y_player1
@@ -437,6 +217,10 @@ nmi:                              ; VBLANK interrupt
 
 irq:
   rti
+
+;;;;;;;;;;;;;;
+
+.include "input.s"
 
 ;;;;;;;;;;;;;;
 
