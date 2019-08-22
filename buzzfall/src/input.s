@@ -339,16 +339,10 @@ check_collision_segmented:
   cmp #6
   bpl @screen_segment_1
   ;background
-  lda #<(background)
-  sta check_collision_bg_addrs
-  lda #>(background)
-  sta check_collision_bg_addrs+1
-
-  ldy #0
-  lda (check_collision_y_addrs), y
-  lsr
-  lsr
-  lsr
+  ldx #<(background)
+  stx check_collision_bg_addrs
+  ldx #>(background)
+  stx check_collision_bg_addrs+1
 
   ldx check_collision_dir
   beq :+
@@ -362,16 +356,11 @@ check_collision_segmented:
   cmp #12
   bpl @screen_segment_2
   ;background1
-  lda #<(background1)
-  sta check_collision_bg_addrs
-  lda #>(background1)
-  sta check_collision_bg_addrs+1
+  ldx #<(background1)
+  stx check_collision_bg_addrs
+  ldx #>(background1)
+  stx check_collision_bg_addrs+1
 
-  ldy #0
-  lda (check_collision_y_addrs), y
-  lsr
-  lsr
-  lsr
   sec
   sbc #6
   ldx check_collision_dir
@@ -386,16 +375,11 @@ check_collision_segmented:
   cmp #18
   bpl @screen_segment_3
   ;background2
-  lda #<(background2)
-  sta check_collision_bg_addrs
-  lda #>(background2)
-  sta check_collision_bg_addrs+1
+  ldx #<(background2)
+  stx check_collision_bg_addrs
+  ldx #>(background2)
+  stx check_collision_bg_addrs+1
 
-  ldy #0
-  lda (check_collision_y_addrs), y
-  lsr
-  lsr
-  lsr
   sec
   sbc #12
   ldx check_collision_dir
@@ -410,16 +394,11 @@ check_collision_segmented:
   cmp #24
   bpl @screen_segment_4
   ;background3
-  lda #<(background3)
-  sta check_collision_bg_addrs
-  lda #>(background3)
-  sta check_collision_bg_addrs+1
+  ldx #<(background3)
+  stx check_collision_bg_addrs
+  ldx #>(background3)
+  stx check_collision_bg_addrs+1
 
-  ldy #0
-  lda (check_collision_y_addrs), y
-  lsr
-  lsr
-  lsr
   sec
   sbc #18
   ldx check_collision_dir
@@ -432,16 +411,11 @@ check_collision_segmented:
 
 @screen_segment_4:
   ;background4
-  lda #<(background4)
-  sta check_collision_bg_addrs
-  lda #>(background4)
-  sta check_collision_bg_addrs+1
+  ldx #<(background4)
+  stx check_collision_bg_addrs
+  ldx #>(background4)
+  stx check_collision_bg_addrs+1
 
-  ldy #0
-  lda (check_collision_y_addrs), y
-  lsr
-  lsr
-  lsr
   sec
   sbc #24
   ldx check_collision_dir
