@@ -5,12 +5,26 @@ input_player_1:
   sta $4016                       ; stop polling input
 
   ;player 1
-  lda $4016                       ; A
+  lda $4016                       ; A -> Jump
+  and #%00000001
+  beq :+
+  ;TODO: finish jump
+  lda #<(y_player1)
+  sta check_collision_y_addrs
+  lda #>(y_player1)
+  sta check_collision_y_addrs+1
+  lda #<(x_player1)
+  sta check_collision_x_addrs
+  lda #>(x_player1)
+  sta check_collision_x_addrs+1
+  lda #1
+  sta check_collision_dir
+  jsr check_collision_segmented
+:
   lda $4016                       ; B
   lda $4016                       ; Select
   lda $4016                       ; Start
   lda $4016                       ; Up
-
   and #%00000001
   beq :+
   dec y_player1

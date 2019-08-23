@@ -14,7 +14,7 @@
 .addr irq
 
 ; how we use ZEROPAGE section ??????
-.segment "ZEROPAGE"               ; is this really supposed to be used like this? what about rs = 1?
+.segment "ZEROPAGE"              ; is this really supposed to be used like this? what about rs = 1?
 bgPointerLo:  .res 1             ; pointer variables are declared in RAM
 bgPointerHi:  .res 1             ; low byte first, high byte immediately after
 
@@ -37,6 +37,8 @@ check_collision_bg_addrs: .res 2
 check_collision_y_addrs:  .res 2
 check_collision_x_addrs:  .res 2
 check_collision_dir:      .res 1 ; 1-> VERTICAL, 0-> HORIZONTAL
+jump_counter              .res 1
+
 
 .segment "CODE"
 reset:
@@ -171,6 +173,41 @@ LoadPalettesLoop:
 mainLoop:
   lda #$00
   sta vblank                      ; reset vblank lock
+  
+  ; player1 gravity
+  clc
+  lda y_player1
+  adc #$2
+  sta y_player1
+  lda #<(y_player1)
+  sta check_collision_y_addrs
+  lda #>(y_player1)
+  sta check_collision_y_addrs+1
+  lda #<(x_player1)
+  sta check_collision_x_addrs
+  lda #>(x_player1)
+  sta check_collision_x_addrs+1
+  lda #$1
+  sta check_collision_dir
+  jsr check_collision_segmented
+
+  ; player2 gravity
+  clc
+  lda y_player2
+  adc #$2
+  sta y_player2
+  lda #<(y_player2)
+  sta check_collision_y_addrs
+  lda #>(y_player2)
+  sta check_collision_y_addrs+1
+  lda #<(x_player2)
+  sta check_collision_x_addrs
+  lda #>(x_player2)
+  sta check_collision_x_addrs+1
+  lda #$1
+  sta check_collision_dir
+  jsr check_collision_segmented
+
 
   jsr input_player_1
   jsr input_player_2
