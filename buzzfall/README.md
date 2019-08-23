@@ -21,9 +21,7 @@ The game will be developed in 6502 assembly.
 
 - MacOS
     ```
-    git clone https://github.com/cc65/cc65.git
-    cd cc65
-    make
+    brew install cc65
     ```
 2) Install fceux emulator
 - Linux  
