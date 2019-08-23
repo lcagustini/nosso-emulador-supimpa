@@ -8,18 +8,10 @@ input_player_1:
   lda $4016                       ; A -> Jump
   and #%00000001
   beq :+
-  ;TODO: finish jump
-  lda #<(y_player1)
-  sta check_collision_y_addrs
-  lda #>(y_player1)
-  sta check_collision_y_addrs+1
-  lda #<(x_player1)
-  sta check_collision_x_addrs
-  lda #>(x_player1)
-  sta check_collision_x_addrs+1
-  lda #1
-  sta check_collision_dir
-  jsr check_collision_segmented
+  lda jump_counter1
+  bne :+
+  lda #10
+  sta jump_counter1
 :
   lda $4016                       ; B
   lda $4016                       ; Select
