@@ -23,20 +23,28 @@ counterHi:    .res 1
 
 x_player1:    .res 1
 y_player1:    .res 1
+v_player1:    .res 1 ;Fixed-point -> 5.3
 
 x_player2:    .res 1
 y_player2:    .res 1
+v_player2:    .res 1 ;Fixed-point -> 5.3
 
 vblank:       .res 1
 
 add_buffer:   .res 1
 add_buffer2:  .res 1
 
-jump_counter1:             .res 1
+jump_counter1:  .res 1 ;Fixed-point -> 5.3
+jump_possible1: .res 1 ;0 -> can jump / 1 -> can't jump
+
+jump_counter2:  .res 1 ;Fixed-point -> 5.3
+jump_possible2: .res 1 ;0 -> can jump / 1 -> can't jump
 
 ; check_collision args
 check_collision_y_addrs:  .res 2
 check_collision_x_addrs:  .res 2
+check_collision_v_addrs:  .res 2
+check_collision_j_addrs:  .res 2
 check_collision_dir:      .res 1 ; 1-> VERTICAL, 0-> HORIZONTAL
 
 check_collision_bg_addrs: .res 2
@@ -176,11 +184,30 @@ mainLoop:
   lda #$00
   sta vblank                      ; reset vblank lock
 
+  jsr input_player_1
+  jsr input_player_2
+
   ; player1 gravity
-  lda y_player1
+  inc v_player1
+
+  ; player1 jump
+  lda jump_counter1
+  beq :+
+  dec jump_counter1
+  lda v_player1
+  sec
+  sbc jump_counter1
+  sta v_player1
+:
+
+  ; player1 apply velocity
+  lda v_player1
+  jsr fixed2int
   clc
-  adc #$2
+  adc y_player1
   sta y_player1
+
+  ; player1 collision
   lda #<(y_player1)
   sta check_collision_y_addrs
   lda #>(y_player1)
@@ -189,15 +216,39 @@ mainLoop:
   sta check_collision_x_addrs
   lda #>(x_player1)
   sta check_collision_x_addrs+1
+  lda #<(v_player1)
+  sta check_collision_v_addrs
+  lda #>(v_player1)
+  sta check_collision_v_addrs+1
+  lda #<(jump_possible1)
+  sta check_collision_j_addrs
+  lda #>(jump_possible1)
+  sta check_collision_j_addrs+1
   lda #$1
   sta check_collision_dir
   jsr check_collision_segmented
 
   ; player2 gravity
-  lda y_player2
+  inc v_player2
+
+  ; player2 jump
+  lda jump_counter2
+  beq :+
+  dec jump_counter2
+  lda v_player2
+  sec
+  sbc jump_counter2
+  sta v_player2
+:
+
+  ; player2 apply velocity
+  lda v_player2
+  jsr fixed2int
   clc
-  adc #$2
+  adc y_player2
   sta y_player2
+
+  ; player2 collision
   lda #<(y_player2)
   sta check_collision_y_addrs
   lda #>(y_player2)
@@ -206,33 +257,17 @@ mainLoop:
   sta check_collision_x_addrs
   lda #>(x_player2)
   sta check_collision_x_addrs+1
+  lda #<(v_player2)
+  sta check_collision_v_addrs
+  lda #>(v_player2)
+  sta check_collision_v_addrs+1
+  lda #<(jump_possible2)
+  sta check_collision_j_addrs
+  lda #>(jump_possible2)
+  sta check_collision_j_addrs+1
   lda #$1
   sta check_collision_dir
   jsr check_collision_segmented
-
-  ; player1 jump
-  lda jump_counter1
-  beq :+
-  dec jump_counter1
-  lda y_player1
-  sec
-  sbc #3
-  sta y_player1
-  lda #<(y_player1)
-  sta check_collision_y_addrs
-  lda #>(y_player1)
-  sta check_collision_y_addrs+1
-  lda #<(x_player1)
-  sta check_collision_x_addrs
-  lda #>(x_player1)
-  sta check_collision_x_addrs+1
-  lda #1
-  sta check_collision_dir
-  jsr check_collision_segmented
-:
-
-  jsr input_player_1
-  jsr input_player_2
 
 :
   lda vblank
@@ -262,6 +297,39 @@ mainLoop:
 
 ;;;;;;;;;;;;;;
 
+; a -> number to be converted
+fixed2int:
+  cmp #0
+  bpl :+
+  sec
+  ror
+  sec
+  ror
+  sec
+  ror
+  jmp @fixed2int_end
+:
+  clc
+  ror
+  clc
+  ror
+  clc
+  ror
+@fixed2int_end:
+  rts
+
+; a -> number to be converted
+int2fixed:
+  asl
+  asl
+  asl
+
+;;;;;;;;;;;;;;
+
+.include "input.s"
+
+;;;;;;;;;;;;;;
+
 nmi:                              ; VBLANK interrupt
   lda #$00
   sta $2003                       ; Why are the high and low so far apart????
@@ -277,10 +345,6 @@ nmi:                              ; VBLANK interrupt
 
 irq:
   rti
-
-;;;;;;;;;;;;;;
-
-.include "input.s"
 
 ;;;;;;;;;;;;;;
 

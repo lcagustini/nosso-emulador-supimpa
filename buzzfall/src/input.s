@@ -8,77 +8,29 @@ input_player_1:
   lda $4016                       ; A -> Jump
   and #%00000001
   beq :+
-  lda jump_counter1
+  lda jump_counter2
   bne :+
-  lda #10
-  sta jump_counter1
+  lda jump_possible2
+  bne :+
+  lda #%1000
+  sta jump_counter2
+  lda #1
+  sta jump_possible2
 :
   lda $4016                       ; B
   lda $4016                       ; Select
   lda $4016                       ; Start
   lda $4016                       ; Up
-  and #%00000001
-  beq :+
-  dec y_player1
-  lda #<(y_player1)
-  sta check_collision_y_addrs
-  lda #>(y_player1)
-  sta check_collision_y_addrs+1
-  lda #<(x_player1)
-  sta check_collision_x_addrs
-  lda #>(x_player1)
-  sta check_collision_x_addrs+1
-  lda #1
-  sta check_collision_dir
-  jsr check_collision_segmented
-:
   lda $4016                       ; Down
-  and #%00000001
-  beq :+
-  inc y_player1
-  lda #<(y_player1)
-  sta check_collision_y_addrs
-  lda #>(y_player1)
-  sta check_collision_y_addrs+1
-  lda #<(x_player1)
-  sta check_collision_x_addrs
-  lda #>(x_player1)
-  sta check_collision_x_addrs+1
-  lda #1
-  sta check_collision_dir
-  jsr check_collision_segmented
-:
   lda $4016                       ; Left
   and #%00000001
   beq :+
-  dec x_player1
-  lda #<(y_player1)
-  sta check_collision_y_addrs
-  lda #>(y_player1)
-  sta check_collision_y_addrs+1
-  lda #<(x_player1)
-  sta check_collision_x_addrs
-  lda #>(x_player1)
-  sta check_collision_x_addrs+1
-  lda #0
-  sta check_collision_dir
-  jsr check_collision_segmented
+  dec x_player2
 :
   lda $4016                       ; Right
   and #%00000001
   beq :+
-  inc x_player1
-  lda #<(y_player1)
-  sta check_collision_y_addrs
-  lda #>(y_player1)
-  sta check_collision_y_addrs+1
-  lda #<(x_player1)
-  sta check_collision_x_addrs
-  lda #>(x_player1)
-  sta check_collision_x_addrs+1
-  lda #0
-  sta check_collision_dir
-  jsr check_collision_segmented
+  inc x_player2
 :
   rts
 
@@ -88,75 +40,33 @@ input_player_2:
   lda #$00
   sta $4017                       ; stop polling input
 
-  ;player 1
-  lda $4017                       ; A
+  ;player 2
+  lda $4017                       ; A -> Jump
+  and #%00000001
+  beq :+
+  lda jump_counter1
+  bne :+
+  lda jump_possible1
+  bne :+
+  lda #%1000
+  sta jump_counter1
+  lda #1
+  sta jump_possible1
+:
   lda $4017                       ; B
   lda $4017                       ; Select
   lda $4017                       ; Start
   lda $4017                       ; Up
-
-  and #%00000001
-  beq :+
-  dec y_player2
-  lda #<(y_player2)
-  sta check_collision_y_addrs
-  lda #>(y_player2)
-  sta check_collision_y_addrs+1
-  lda #<(x_player2)
-  sta check_collision_x_addrs
-  lda #>(x_player2)
-  sta check_collision_x_addrs+1
-  lda #1
-  sta check_collision_dir
-  jsr check_collision_segmented
-:
   lda $4017                       ; Down
-  and #%00000001
-  beq :+
-  inc y_player2
-  lda #<(y_player2)
-  sta check_collision_y_addrs
-  lda #>(y_player2)
-  sta check_collision_y_addrs+1
-  lda #<(x_player2)
-  sta check_collision_x_addrs
-  lda #>(x_player2)
-  sta check_collision_x_addrs+1
-  lda #1
-  sta check_collision_dir
-  jsr check_collision_segmented
-:
   lda $4017                       ; Left
   and #%00000001
   beq :+
-  dec x_player2
-  lda #<(y_player2)
-  sta check_collision_y_addrs
-  lda #>(y_player2)
-  sta check_collision_y_addrs+1
-  lda #<(x_player2)
-  sta check_collision_x_addrs
-  lda #>(x_player2)
-  sta check_collision_x_addrs+1
-  lda #0
-  sta check_collision_dir
-  jsr check_collision_segmented
+  dec x_player1
 :
   lda $4017                       ; Right
   and #%00000001
   beq :+
-  inc x_player2
-  lda #<(y_player2)
-  sta check_collision_y_addrs
-  lda #>(y_player2)
-  sta check_collision_y_addrs+1
-  lda #<(x_player2)
-  sta check_collision_x_addrs
-  lda #>(x_player2)
-  sta check_collision_x_addrs+1
-  lda #0
-  sta check_collision_dir
-  jsr check_collision_segmented
+  inc x_player1
 :
   rts
 
@@ -236,6 +146,9 @@ check_collision_ver:
   jmp @check_collision_end
 :
   ldy #0
+  lda #0
+  sta (check_collision_v_addrs), y
+  sta (check_collision_j_addrs), y
   lda (check_collision_y_addrs), y
   and #%111
   sta add_buffer2
