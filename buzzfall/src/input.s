@@ -111,7 +111,7 @@ check_collision_ver:
   lda #7
   sec
   sbc add_buffer2
-  clc
+  sec
   adc (check_collision_y_addrs), y
   sta (check_collision_y_addrs), y
   jmp @check_collision_end
