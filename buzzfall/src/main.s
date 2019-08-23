@@ -37,7 +37,7 @@ check_collision_bg_addrs: .res 2
 check_collision_y_addrs:  .res 2
 check_collision_x_addrs:  .res 2
 check_collision_dir:      .res 1 ; 1-> VERTICAL, 0-> HORIZONTAL
-jump_counter              .res 1
+jump_counter:             .res 1
 
 
 .segment "CODE"
@@ -269,5 +269,6 @@ irq:
 .segment "CHARS"
 .incbin "gfx/arqueiro.chr"
 .incbin "gfx/arqueiro.chr"
-.res 4064
+.incbin "gfx/flecha.chr"
+.res 4048
 .incbin "gfx/bg.chr"
