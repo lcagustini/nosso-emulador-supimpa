@@ -23,28 +23,32 @@ bgPointerHi:  .res 1             ; low byte first, high byte immediately after
 counterLo:    .res 1
 counterHi:    .res 1
 
-x_player1:    .res 1
-y_player1:    .res 1
-v_player1:    .res 1 ;Fixed-point -> 5.3
-
-x_player2:    .res 1
-y_player2:    .res 1
-v_player2:    .res 1 ;Fixed-point -> 5.3
-
-vblank:       .res 1
+vblank:       .res 1            ; vblank flag (set by nmi)
 
 add_buffer:   .res 1
 add_buffer2:  .res 1
+
+; Player 1 variables
+x_player1:    .res 1
+y_player1:    .res 1
+v_player1:    .res 1 ;Fixed-point -> 5.3
 
 jump_counter1:  .res 1 ;Fixed-point -> 5.3
 jump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
 walljump_cooldown1: .res 1 
 walljump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
+;
+
+; Player 2 variables
+x_player2:    .res 1
+y_player2:    .res 1
+v_player2:    .res 1 ;Fixed-point -> 5.3
 
 jump_counter2:  .res 1 ;Fixed-point -> 5.3
 jump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
 walljump_cooldown2: .res 1 
 walljump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
+;
 
 ; check_collision args
 check_collision_y_addrs:  .res 2
@@ -56,6 +60,9 @@ check_collision_dir:      .res 1 ; 1-> VERTICAL, 0-> HORIZONTAL
 
 check_collision_bg_addrs: .res 2
 ;
+
+.segment "BSS"
+shadow_oam: .res 256
 
 .segment "CODE"
 reset:
@@ -93,7 +100,7 @@ clrmem:                           ; Set up RAM before waiting for the second vbl
   sta $0600, x
   sta $0700, x
   lda #$FE
-  sta $0200, x                    ; Shouldn't be zeroed, since that would mean X position is 0
+  sta shadow_oam, x                    ; Shouldn't be zeroed, since that would mean X position is 0
                                   ; Instead, we set the X poision to 0xFE, meaning it is offscreen
   inx
   bne clrmem
@@ -184,6 +191,7 @@ LoadPalettesLoop:
   lda #20
   sta x_player1
   sta y_player1
+  lda #30
   sta x_player2
   sta y_player2
 
@@ -301,23 +309,23 @@ mainLoop:
 
   ; player 1
   lda y_player1
-  sta $0200                       ; Y
+  sta shadow_oam                  ; Y
   lda x_player1
-  sta $0203                       ; X
+  sta shadow_oam+3                ; X
   lda #$00
-  sta $0201                       ; tile number = 1
+  sta shadow_oam+1                ; tile number = 0
   lda #$00
-  sta $0202                       ; color = 0, no flipping
+  sta shadow_oam+2                ; color = 0, no flipping
 
   ; player 2
   lda y_player2
-  sta $0204                       ; Y
+  sta shadow_oam+4                ; Y
   lda x_player2
-  sta $0207                       ; X
+  sta shadow_oam+7                ; X
   lda #$01
-  sta $0205                       ; tile number = 1
-  lda #$00
-  sta $0206                       ; color = 0, no flipping
+  sta shadow_oam+5                ; tile number = 1
+  lda #$01
+  sta shadow_oam+6                ; color = 1, no flipping
 
   jmp mainLoop                    ; jump back to Forever, infinite loop
 
