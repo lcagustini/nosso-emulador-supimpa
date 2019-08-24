@@ -35,7 +35,7 @@ v_player1:    .res 1 ;Fixed-point -> 5.3
 
 jump_counter1:  .res 1 ;Fixed-point -> 5.3
 jump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
-walljump_cooldown1: .res 1 
+walljump_cooldown1: .res 1
 walljump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
 ;
 
@@ -46,8 +46,18 @@ v_player2:    .res 1 ;Fixed-point -> 5.3
 
 jump_counter2:  .res 1 ;Fixed-point -> 5.3
 jump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
-walljump_cooldown2: .res 1 
+walljump_cooldown2: .res 1
 walljump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
+;
+
+; Arrow 1 variables
+x_arrow1:     .res 1
+y_arrow1:     .res 1
+;
+
+; Arrow 2 variables
+x_arrow2:     .res 1
+y_arrow2:     .res 1
 ;
 
 ; check_collision args
@@ -327,6 +337,27 @@ mainLoop:
   lda #$01
   sta shadow_oam+6                ; color = 1, no flipping
 
+  ; arrow player 1
+  lda y_arrow1
+  sta shadow_oam+8                ; Y
+  lda x_arrow1
+  sta shadow_oam+11               ; X
+  lda #$02
+  sta shadow_oam+9                ; tile numeber = 2
+  lda #$02
+  sta shadow_oam+10               ; color = 2, no flipping
+
+  ; arrow player 2
+  lda y_arrow2
+  sta shadow_oam+12                ; Y
+  lda x_arrow2
+  sta shadow_oam+15               ; X
+  lda #$03
+  sta shadow_oam+13                ; tile numeber = 3
+  lda #$01
+  sta shadow_oam+14               ; color = 2, no flipping
+
+
   jmp mainLoop                    ; jump back to Forever, infinite loop
 
 ;;;;;;;;;;;;;;
@@ -391,5 +422,6 @@ irq:
 .incbin "gfx/arqueiro.chr"
 .incbin "gfx/arqueiro.chr"
 .incbin "gfx/flecha.chr"
-.res 4048
+.incbin "gfx/flecha.chr"
+.res 4032
 .incbin "gfx/bg.chr"

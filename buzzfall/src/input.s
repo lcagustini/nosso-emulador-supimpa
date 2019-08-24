@@ -8,7 +8,7 @@ input_player_1:
   lda $4016                       ; A -> Jump
   and #%00000001
   beq @skipJump
-  
+
   lda jump_disabled1
   bne :+
   lda #JUMP_BOOST
@@ -29,6 +29,14 @@ input_player_1:
 
 @skipJump:
   lda $4016                       ; B
+  and #%00000001
+  beq @skipArrow
+  lda y_player1
+  sta y_arrow1
+  lda x_player1
+  sta x_arrow1
+
+@skipArrow:
   lda $4016                       ; Select
   lda $4016                       ; Start
   lda $4016                       ; Up
@@ -101,7 +109,7 @@ input_player_2:
   lda $4017                       ; A -> Jump
   and #%00000001
   beq @skipJump
-  
+
   lda jump_disabled2
   bne :+
   lda #JUMP_BOOST
@@ -122,6 +130,15 @@ input_player_2:
 
 @skipJump:
   lda $4017                       ; B
+  and #%00000001
+  beq @skipArrow
+  lda y_player2
+  sta y_arrow2
+  lda x_player2
+  sta x_arrow2
+
+@skipArrow:
+
   lda $4017                       ; Select
   lda $4017                       ; Start
   lda $4017                       ; Up
