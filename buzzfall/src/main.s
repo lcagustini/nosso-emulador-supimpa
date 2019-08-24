@@ -1,3 +1,5 @@
+JUMP_BOOST = %0111
+
 .segment "HEADER"
 .byte "NES"                       ; signature
 .byte $1A                         ; signature
@@ -35,16 +37,21 @@ add_buffer:   .res 1
 add_buffer2:  .res 1
 
 jump_counter1:  .res 1 ;Fixed-point -> 5.3
-jump_possible1: .res 1 ;0 -> can jump / 1 -> can't jump
+jump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
+walljump_cooldown1: .res 1 
+walljump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
 
 jump_counter2:  .res 1 ;Fixed-point -> 5.3
-jump_possible2: .res 1 ;0 -> can jump / 1 -> can't jump
+jump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
+walljump_cooldown2: .res 1 
+walljump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
 
 ; check_collision args
 check_collision_y_addrs:  .res 2
 check_collision_x_addrs:  .res 2
 check_collision_v_addrs:  .res 2
 check_collision_j_addrs:  .res 2
+check_collision_wj_addrs: .res 2
 check_collision_dir:      .res 1 ; 1-> VERTICAL, 0-> HORIZONTAL
 
 check_collision_bg_addrs: .res 2
@@ -207,6 +214,12 @@ mainLoop:
   adc y_player1
   sta y_player1
 
+  ; player1 apply walljump cooldown
+  lda walljump_cooldown1
+  beq :+
+  dec walljump_cooldown1
+:
+
   ; player1 collision
   lda #<(y_player1)
   sta check_collision_y_addrs
@@ -220,9 +233,13 @@ mainLoop:
   sta check_collision_v_addrs
   lda #>(v_player1)
   sta check_collision_v_addrs+1
-  lda #<(jump_possible1)
+  lda #<(walljump_disabled1)
+  sta check_collision_wj_addrs
+  lda #>(walljump_disabled1)
+  sta check_collision_wj_addrs+1
+  lda #<(jump_disabled1)
   sta check_collision_j_addrs
-  lda #>(jump_possible1)
+  lda #>(jump_disabled1)
   sta check_collision_j_addrs+1
   lda #$1
   sta check_collision_dir
@@ -248,6 +265,11 @@ mainLoop:
   adc y_player2
   sta y_player2
 
+  ; player2 apply walljump cooldown
+  lda walljump_cooldown2
+  beq :+
+  dec walljump_cooldown2
+:
   ; player2 collision
   lda #<(y_player2)
   sta check_collision_y_addrs
@@ -261,9 +283,13 @@ mainLoop:
   sta check_collision_v_addrs
   lda #>(v_player2)
   sta check_collision_v_addrs+1
-  lda #<(jump_possible2)
+  lda #<(walljump_disabled2)
+  sta check_collision_wj_addrs
+  lda #>(walljump_disabled2)
+  sta check_collision_wj_addrs+1
+  lda #<(jump_disabled2)
   sta check_collision_j_addrs
-  lda #>(jump_possible2)
+  lda #>(jump_disabled2)
   sta check_collision_j_addrs+1
   lda #$1
   sta check_collision_dir

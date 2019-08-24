@@ -7,16 +7,27 @@ input_player_1:
   ;player 1
   lda $4016                       ; A -> Jump
   and #%00000001
-  beq :+
-  lda jump_counter2
+  beq @skipJump
+  
+  lda jump_disabled1
   bne :+
-  lda jump_possible2
-  bne :+
-  lda #%1000
-  sta jump_counter2
+  lda #JUMP_BOOST
+  sta jump_counter1
   lda #1
-  sta jump_possible2
+  sta jump_disabled1
 :
+  lda walljump_disabled1
+  bne @skipJump
+  lda walljump_cooldown1
+  bne @skipJump
+  lda #JUMP_BOOST
+  sta jump_counter1
+  lda #30
+  sta walljump_cooldown1
+  lda #0
+  sta v_player1                   ; reset velocity
+
+@skipJump:
   lda $4016                       ; B
   lda $4016                       ; Select
   lda $4016                       ; Start
@@ -25,12 +36,58 @@ input_player_1:
   lda $4016                       ; Left
   and #%00000001
   beq :+
-  dec x_player2
+  dec x_player1
+  lda #<(y_player1)               ; collision
+  sta check_collision_y_addrs
+  lda #>(y_player1)
+  sta check_collision_y_addrs+1
+  lda #<(x_player1)
+  sta check_collision_x_addrs
+  lda #>(x_player1)
+  sta check_collision_x_addrs+1
+  lda #<(v_player1)
+  sta check_collision_v_addrs
+  lda #>(v_player1)
+  sta check_collision_v_addrs+1
+  lda #<(walljump_disabled1)
+  sta check_collision_wj_addrs
+  lda #>(walljump_disabled1)
+  sta check_collision_wj_addrs+1
+  lda #<(jump_disabled1)
+  sta check_collision_j_addrs
+  lda #>(jump_disabled1)
+  sta check_collision_j_addrs+1
+  lda #$0
+  sta check_collision_dir
+  jsr check_collision_segmented
 :
   lda $4016                       ; Right
   and #%00000001
   beq :+
-  inc x_player2
+  inc x_player1
+  lda #<(y_player1)               ; collision
+  sta check_collision_y_addrs
+  lda #>(y_player1)
+  sta check_collision_y_addrs+1
+  lda #<(x_player1)
+  sta check_collision_x_addrs
+  lda #>(x_player1)
+  sta check_collision_x_addrs+1
+  lda #<(v_player1)
+  sta check_collision_v_addrs
+  lda #>(v_player1)
+  sta check_collision_v_addrs+1
+  lda #<(walljump_disabled1)
+  sta check_collision_wj_addrs
+  lda #>(walljump_disabled1)
+  sta check_collision_wj_addrs+1
+  lda #<(jump_disabled1)
+  sta check_collision_j_addrs
+  lda #>(jump_disabled1)
+  sta check_collision_j_addrs+1
+  lda #$0
+  sta check_collision_dir
+  jsr check_collision_segmented
 :
   rts
 
@@ -43,16 +100,27 @@ input_player_2:
   ;player 2
   lda $4017                       ; A -> Jump
   and #%00000001
-  beq :+
-  lda jump_counter1
+  beq @skipJump
+  
+  lda jump_disabled2
   bne :+
-  lda jump_possible1
-  bne :+
-  lda #%1000
-  sta jump_counter1
+  lda #JUMP_BOOST
+  sta jump_counter2
   lda #1
-  sta jump_possible1
+  sta jump_disabled2
 :
+  lda walljump_disabled2
+  bne @skipJump
+  lda walljump_cooldown2
+  bne @skipJump
+  lda #JUMP_BOOST
+  sta jump_counter2
+  lda #30
+  sta walljump_cooldown2
+  lda #0
+  sta v_player2                   ; reset velocity
+
+@skipJump:
   lda $4017                       ; B
   lda $4017                       ; Select
   lda $4017                       ; Start
@@ -61,12 +129,58 @@ input_player_2:
   lda $4017                       ; Left
   and #%00000001
   beq :+
-  dec x_player1
+  dec x_player2
+  lda #<(y_player2)               ; collision
+  sta check_collision_y_addrs
+  lda #>(y_player2)
+  sta check_collision_y_addrs+1
+  lda #<(x_player2)
+  sta check_collision_x_addrs
+  lda #>(x_player2)
+  sta check_collision_x_addrs+1
+  lda #<(v_player2)
+  sta check_collision_v_addrs
+  lda #>(v_player2)
+  sta check_collision_v_addrs+1
+  lda #<(walljump_disabled2)
+  sta check_collision_wj_addrs
+  lda #>(walljump_disabled2)
+  sta check_collision_wj_addrs+1
+  lda #<(jump_disabled2)
+  sta check_collision_j_addrs
+  lda #>(jump_disabled2)
+  sta check_collision_j_addrs+1
+  lda #$0
+  sta check_collision_dir
+  jsr check_collision_segmented
 :
   lda $4017                       ; Right
   and #%00000001
   beq :+
-  inc x_player1
+  inc x_player2
+  lda #<(y_player2)               ; collision
+  sta check_collision_y_addrs
+  lda #>(y_player2)
+  sta check_collision_y_addrs+1
+  lda #<(x_player2)
+  sta check_collision_x_addrs
+  lda #>(x_player2)
+  sta check_collision_x_addrs+1
+  lda #<(v_player2)
+  sta check_collision_v_addrs
+  lda #>(v_player2)
+  sta check_collision_v_addrs+1
+  lda #<(walljump_disabled2)
+  sta check_collision_wj_addrs
+  lda #>(walljump_disabled2)
+  sta check_collision_wj_addrs+1
+  lda #<(jump_disabled2)
+  sta check_collision_j_addrs
+  lda #>(jump_disabled2)
+  sta check_collision_j_addrs+1
+  lda #$0
+  sta check_collision_dir
+  jsr check_collision_segmented
 :
   rts
 
@@ -166,6 +280,9 @@ check_collision_hor:
   asl
   asl
   sta add_buffer
+  lda #1
+  ldy #0
+  sta (check_collision_wj_addrs), y
 @check_left:
   ldy #0
   lda (check_collision_x_addrs), y
@@ -192,8 +309,10 @@ check_collision_hor:
   beq :+
 
   jmp @check_right
-:
+:                                        ; hit left
   ldy #0
+  lda #0
+  sta (check_collision_wj_addrs), y      ; enable walljump
   lda (check_collision_x_addrs), y
   and #%111
   sta add_buffer2
@@ -234,8 +353,10 @@ check_collision_hor:
   beq :+
 
   jmp @check_collision_end
-:
+:                                        ; hit right
   ldy #0
+  lda #0
+  sta (check_collision_wj_addrs), y      ; enable walljump
   lda (check_collision_x_addrs), y
   and #%111
   sta add_buffer2
