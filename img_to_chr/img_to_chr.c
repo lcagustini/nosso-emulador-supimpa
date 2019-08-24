@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < w*h/64; i += 16) {
     printf(".byte ");
     for (int j = 0; j < 16; j++) {
-      printf("%02X", nametable[i+j]);
+      printf("$%02X", nametable[i+j]);
       if (j != 15) printf(",");
     }
     printf("\n");
