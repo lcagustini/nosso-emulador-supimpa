@@ -28,6 +28,8 @@ vblank:       .res 1            ; vblank flag (set by nmi)
 add_buffer:   .res 1
 add_buffer2:  .res 1
 
+direction:    .res 1            ; direction flag (0 -> left / 1 -> right / 2 -> up / 3->down)
+
 ; Player 1 variables
 x_player1:    .res 1
 y_player1:    .res 1
@@ -51,13 +53,17 @@ walljump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
 ;
 
 ; Arrow 1 variables
+arrow1:       .res 1        ; 1 -> arrow 1 on screen / 0 -> no arrow
 x_arrow1:     .res 1
 y_arrow1:     .res 1
+d_arrow1:     .res 1
 ;
 
 ; Arrow 2 variables
+arrow2:       .res 1        ; 1 -> arrow 2 on screen / 0 -> no arrow
 x_arrow2:     .res 1
 y_arrow2:     .res 1
+d_arrow2:     .res 1
 ;
 
 ; check_collision args
@@ -95,7 +101,6 @@ reset:
                                   ; chance of happening on NTSC or 2 in 9 on PAL.  Clear the
                                   ; flag now so the @vblankwait1 loop sees an actual vblank.
   bit $2002
-
 vblankwait1:                      ; First wait for vblank to make sure PPU is ready
   bit $2002
   bpl vblankwait1
@@ -204,6 +209,14 @@ LoadPalettesLoop:
   lda #30
   sta x_player2
   sta y_player2
+
+;
+
+; Set directions variables
+  lda #$00
+  sta arrow1
+  lda #$00 
+  lda arrow2
 
 mainLoop:
   lda #$00
@@ -336,6 +349,31 @@ mainLoop:
   sta shadow_oam+5                ; tile number = 1
   lda #$01
   sta shadow_oam+6                ; color = 1, no flipping
+
+  ; arrow 1 velocity
+  lda arrow1
+  cmp #$1                         ; check if the player 1 threw the arrow
+  bne :+
+  lda d_arrow1
+@left:                            ; check the direction of the arrow                  
+  cmp #$0
+  bne @right
+  dec x_arrow1
+  jmp :+
+@right:
+  cmp #$1
+  bne @up
+  inc x_arrow1
+  jmp :+
+@up:
+  cmp #$2
+  bne @down
+  dec y_arrow1
+  jmp :+
+@down:
+  cmp #$3
+  inc y_arrow1
+:
 
   ; arrow player 1
   lda y_arrow1

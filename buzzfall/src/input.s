@@ -35,15 +35,31 @@ input_player_1:
   sta y_arrow1
   lda x_player1
   sta x_arrow1
+  lda direction            
+  sta d_arrow1                    ; define the arrow direction
+  lda #$1
+  sta arrow1                      ; arrow on screen 
 
 @skipArrow:
   lda $4016                       ; Select
   lda $4016                       ; Start
   lda $4016                       ; Up
+  and #%00000001
+  beq :+
+  lda #$2
+  sta direction
+:
   lda $4016                       ; Down
+  and #%00000001
+  beq :+
+  lda #$3
+  sta direction 
+:
   lda $4016                       ; Left
   and #%00000001
   beq :+
+  lda #$0
+  sta direction
   dec x_player1
   lda #<(y_player1)               ; collision
   sta check_collision_y_addrs
@@ -72,6 +88,8 @@ input_player_1:
   lda $4016                       ; Right
   and #%00000001
   beq :+
+  lda #$1
+  sta direction
   inc x_player1
   lda #<(y_player1)               ; collision
   sta check_collision_y_addrs
