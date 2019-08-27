@@ -1,5 +1,5 @@
 JUMP_BOOST = %0111
-ANIMATION_TIMER = 10
+ANIMATION_TIMER = 8
 
 .segment "HEADER"
 .byte "NES"                       ; signature
@@ -353,33 +353,38 @@ mainLoop:
 
   ;;;;; UPDATE ANIMATIONS ;;;;;
 
-  lda walljump_disabled1
-  beq @skipJumpAnimation1         ; if player is in the air
-  lda jump_disabled1
-  beq @skipJumpAnimation1
-  lda animation_cur_tile1
-  lsr
-  lsr
-  lsr
-  cmp #3
-  bne @skipJumpAnimation1         ; and he is in walljump animation
-  lda #16
-  sta animation_cur_tile1
-@skipJumpAnimation1:
+  ; This code changes the way the character is animated
+  ; when leaving a wall after a walljump is performed
+  ; Currently we decided to leave it commented since
+  ; the current animation works better without it.
 
-  lda walljump_disabled2
-  beq @skipJumpAnimation2         ; if player is in the air
-  lda jump_disabled2
-  beq @skipJumpAnimation2
-  lda animation_cur_tile2
-  lsr
-  lsr
-  lsr
-  cmp #3
-  bne @skipJumpAnimation2         ; and he is in walljump animation
-  lda #16
-  sta animation_cur_tile2
-@skipJumpAnimation2:
+;  lda walljump_disabled1
+;  beq @skipJumpAnimation1         ; if player is in the air
+;  lda jump_disabled1
+;  beq @skipJumpAnimation1
+;  lda animation_cur_tile1
+;  lsr
+;  lsr
+;  lsr
+;  cmp #3
+;  bne @skipJumpAnimation1         ; and he is in walljump animation
+;  lda #16
+;  sta animation_cur_tile1
+;@skipJumpAnimation1:
+;
+;  lda walljump_disabled2
+;  beq @skipJumpAnimation2         ; if player is in the air
+;  lda jump_disabled2
+;  beq @skipJumpAnimation2
+;  lda animation_cur_tile2
+;  lsr
+;  lsr
+;  lsr
+;  cmp #3
+;  bne @skipJumpAnimation2         ; and he is in walljump animation
+;  lda #16
+;  sta animation_cur_tile2
+;@skipJumpAnimation2:
 
   lda walking1
   bne @skipIdleAnimation1         ; if player isn't walking
