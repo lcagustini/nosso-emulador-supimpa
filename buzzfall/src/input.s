@@ -189,6 +189,15 @@ input_player_2:
   lda x_player2
   sta x_arrow2
 
+  lda animation_cur_tile2         ; if it isn't in shooting animation
+  lsr
+  lsr
+  lsr
+  cmp #4
+  beq :+
+  lda #32
+  sta animation_cur_tile2         ; change to shooting animation
+:
 @skipArrow:
 
   lda $4017                       ; Select

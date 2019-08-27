@@ -412,6 +412,13 @@ mainLoop:
   lsr
   cmp #0
   beq @skipIdleAnimation2         ; and he is in another animation
+  cmp #4                          ; that isn't shooting animation ...
+  bne :+
+  lda animation_cur_tile2
+  and #%111
+  cmp #4                          ; ... after the fourth frame
+  bmi @skipWalkAnimation2
+:
   lda #0
   sta animation_cur_tile2
 @skipIdleAnimation2:
@@ -447,6 +454,13 @@ mainLoop:
   lsr
   cmp #1
   beq @skipWalkAnimation2         ; and he is in another animation
+  cmp #4                          ; that isn't shooting animation ...
+  bne :+
+  lda animation_cur_tile2
+  and #%111
+  cmp #4                          ; ... after the fourth frame
+  bmi @skipWalkAnimation2
+:
   lda #8
   sta animation_cur_tile2
 @skipWalkAnimation2:
