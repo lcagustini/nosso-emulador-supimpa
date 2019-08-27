@@ -50,6 +50,15 @@ input_player_1:
   sta d_arrow1                    ; define the arrow direction
   lda #$1
   sta arrow1                      ; arrow on screen
+
+  lda animation_cur_tile1         ; if it isn't in shooting animation
+  lsr
+  lsr
+  lsr
+  cmp #4
+  beq :+
+  lda #32
+  sta animation_cur_tile1         ; change to shooting animation
 :
   lda $4016                       ; Select
   lda $4016                       ; Start
