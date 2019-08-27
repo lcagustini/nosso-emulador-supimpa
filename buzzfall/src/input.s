@@ -35,10 +35,10 @@ input_player_1:
   sta y_arrow1
   lda x_player1
   sta x_arrow1
-  lda direction            
+  lda direction
   sta d_arrow1                    ; define the arrow direction
   lda #$1
-  sta arrow1                      ; arrow on screen 
+  sta arrow1                      ; arrow on screen
 
 @skipArrow:
   lda $4016                       ; Select
@@ -53,7 +53,7 @@ input_player_1:
   and #%00000001
   beq :+
   lda #$3
-  sta direction 
+  sta direction
 :
   lda $4016                       ; Left
   and #%00000001
@@ -238,7 +238,8 @@ check_collision_ver:
   adc add_buffer
   tay
   lda (check_collision_bg_addrs), y
-  beq :+
+  cmp #15
+  bpl :+
 
   ldy #0
   lda (check_collision_x_addrs), y
@@ -249,7 +250,8 @@ check_collision_ver:
   adc add_buffer
   tay
   lda (check_collision_bg_addrs), y
-  beq :+
+  cmp #15
+  bpl :+
 
   jmp @check_down
 :
@@ -278,7 +280,8 @@ check_collision_ver:
   adc #32
   tay
   lda (check_collision_bg_addrs), y
-  beq :+
+  cmp #15
+  bpl :+
 
   ldy #0
   lda (check_collision_x_addrs), y
@@ -291,7 +294,9 @@ check_collision_ver:
   adc #32
   tay
   lda (check_collision_bg_addrs), y
-  beq :+
+  cmp #15
+  bpl :+
+
   jmp @check_collision_end
 :
   ldy #0
@@ -328,7 +333,8 @@ check_collision_hor:
   adc add_buffer
   tay
   lda (check_collision_bg_addrs), y
-  beq :+
+  cmp #15
+  bpl :+
 
   ldy #0
   lda (check_collision_x_addrs), y
@@ -341,7 +347,8 @@ check_collision_hor:
   adc #32
   tay
   lda (check_collision_bg_addrs), y
-  beq :+
+  cmp #15
+  bpl :+
 
   jmp @check_right
 :                                        ; hit left
@@ -370,7 +377,8 @@ check_collision_hor:
   adc add_buffer
   tay
   lda (check_collision_bg_addrs), y
-  beq :+
+  cmp #15
+  bpl :+
 
   ldy #0
   lda (check_collision_x_addrs), y
@@ -385,7 +393,8 @@ check_collision_hor:
   adc #32
   tay
   lda (check_collision_bg_addrs), y
-  beq :+
+  cmp #15
+  bpl :+
 
   jmp @check_collision_end
 :                                        ; hit right
