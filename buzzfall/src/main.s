@@ -1,4 +1,5 @@
 JUMP_BOOST = %0111
+ANIMATION_TIMER = 10
 
 .segment "HEADER"
 .byte "NES"                       ; signature
@@ -28,21 +29,24 @@ vblank:       .res 1            ; vblank flag (set by nmi)
 add_buffer:   .res 1
 add_buffer2:  .res 1
 
-direction:    .res 1            ; direction flag (0 -> left / 1 -> right / 2 -> up / 3->down)
 dummy:        .res 1
 
 ; Player 1 variables
+direction1:   .res 1            ; direction flag (0 -> left / 1 -> right / 2 -> up / 3->down)
 x_player1:    .res 1
 y_player1:    .res 1
 v_player1:    .res 1 ;Fixed-point -> 5.3
+walking1:     .res 1 ; 0 -> not walking / 1 -> walking
 
 jump_counter1:  .res 1 ;Fixed-point -> 5.3
 jump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
 walljump_cooldown1: .res 1
 walljump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
+walking2:     .res 1 ; 0 -> not walking / 1 -> walking
 ;
 
 ; Player 2 variables
+direction2:   .res 1            ; direction flag (0 -> left / 1 -> right / 2 -> up / 3->down)
 x_player2:    .res 1
 y_player2:    .res 1
 v_player2:    .res 1 ;Fixed-point -> 5.3
@@ -58,6 +62,7 @@ arrow1:       .res 1        ; 1 -> arrow 1 on screen / 0 -> no arrow
 x_arrow1:     .res 1
 y_arrow1:     .res 1
 d_arrow1:     .res 1
+animation_cur_tile1: .res 1
 ;
 
 ; Arrow 2 variables
@@ -65,6 +70,7 @@ arrow2:       .res 1        ; 1 -> arrow 2 on screen / 0 -> no arrow
 x_arrow2:     .res 1
 y_arrow2:     .res 1
 d_arrow2:     .res 1
+animation_cur_tile2: .res 1
 ;
 
 ; check_collision args
@@ -76,6 +82,10 @@ check_collision_wj_addrs: .res 2
 check_collision_dir:      .res 1 ; 1-> VERTICAL, 0-> HORIZONTAL
 
 check_collision_bg_addrs: .res 2
+;
+
+; Animation variables
+animation_timer:          .res 1
 ;
 
 .segment "BSS"
@@ -116,7 +126,7 @@ clrmem:                           ; Set up RAM before waiting for the second vbl
   sta $0600, x
   sta $0700, x
   lda #$FE
-  sta shadow_oam, x                    ; Shouldn't be zeroed, since that would mean X position is 0
+  sta shadow_oam, x               ; Shouldn't be zeroed, since that would mean X position is 0
                                   ; Instead, we set the X poision to 0xFE, meaning it is offscreen
   inx
   bne clrmem
@@ -218,6 +228,19 @@ LoadPalettesLoop:
   sta arrow1
   lda #$00 
   lda arrow2
+
+; Initialize animations
+  lda #ANIMATION_TIMER
+  sta animation_timer
+  lda #0
+  sta animation_cur_tile1
+  sta animation_cur_tile2
+
+; Initialize players' shadow_oam
+  lda #0
+  sta shadow_oam+2                ; color = 0, no flipping
+  lda #1
+  sta shadow_oam+6                ; color = 1, no flipping
 
 mainLoop:
   lda #$00
@@ -327,29 +350,151 @@ mainLoop:
   sta check_collision_dir
   jsr check_collision_segmented
 
+
+  ;;;;; UPDATE ANIMATIONS ;;;;;
+
+  lda walking1
+  bne @skipIdleAnimation1         ; if player is walking
+  lda jump_disabled1
+  bne @skipIdleAnimation1         ; and jump is enabled
+  lda animation_cur_tile1
+  lsr
+  lsr
+  lsr
+  cmp #0
+  beq @skipIdleAnimation1         ; and he is in another animation
+  lda #0
+  sta animation_cur_tile1
+@skipIdleAnimation1:
+
+  lda walking2
+  bne @skipIdleAnimation2         ; if player is walking
+  lda jump_disabled2
+  bne @skipIdleAnimation2         ; and jump is enabled
+  lda animation_cur_tile2
+  lsr
+  lsr
+  lsr
+  cmp #0
+  beq @skipIdleAnimation2         ; and he is in another animation
+  lda #0
+  sta animation_cur_tile2
+@skipIdleAnimation2:
+
+  lda walking1
+  beq @skipWalkAnimation1         ; if player is walking
+  lda jump_disabled1
+  bne @skipWalkAnimation1         ; and jump is enabled
+  lda animation_cur_tile1
+  lsr
+  lsr
+  lsr
+  cmp #1
+  beq @skipWalkAnimation1         ; and he is in another animation
+  lda #8
+  sta animation_cur_tile1
+@skipWalkAnimation1:
+
+  lda walking2
+  beq @skipWalkAnimation2         ; if player is walking
+  lda jump_disabled2
+  bne @skipWalkAnimation2         ; and jump is enabled
+  lda animation_cur_tile2
+  lsr
+  lsr
+  lsr
+  cmp #1
+  beq @skipWalkAnimation2         ; and he is in another animation
+  lda #8
+  sta animation_cur_tile2
+@skipWalkAnimation2:
+
+  dec animation_timer             ; decrement animation timer
+  lda animation_timer
+  bne @skipChangeAnimTile         ; did animation timer hit 0?
+  
+                                  ; change animation frame for player 1
+  inc animation_cur_tile1         ; move to the next animation tile
+  lda animation_cur_tile1
+  and #%111                       ; a = animation_cur_tile MOD 8
+  tax                             ; X is the animation frame (each animation has 6 frames)
+  cmp #06                         ; a == 6 ? (go back to 0) : (skip)
+  bne :+
+  ldx #0
 :
-  lda vblank
-  beq :-
+  stx add_buffer
+  lda animation_cur_tile1
+  and #%11111000
+  clc
+  adc add_buffer
+  sta animation_cur_tile1
+  lda #ANIMATION_TIMER
+  sta animation_timer             ; reset animation timer
+
+                                  ; change animation frame for player 2
+  inc animation_cur_tile2         ; move to the next animation tile
+  lda animation_cur_tile2
+  and #%111                       ; a = animation_cur_tile MOD 8
+  tax                             ; X is the animation frame (each animation has 6 frames)
+  cmp #06                         ; a == 6 ? (go back to 0) : (skip)
+  bne :+
+  ldx #0
+:
+  stx add_buffer
+  lda animation_cur_tile2
+  and #%11111000
+  clc
+  adc add_buffer
+  sta animation_cur_tile2
+  lda #ANIMATION_TIMER
+  sta animation_timer             ; reset animation timer
+@skipChangeAnimTile:
+
+
+  ;;;;; UPDATE SHADOW OAM ;;;;;
 
   ; player 1
   lda y_player1
   sta shadow_oam                  ; Y
   lda x_player1
   sta shadow_oam+3                ; X
-  lda #$00
+  lda animation_cur_tile1
   sta shadow_oam+1                ; tile number = 0
-  lda #$00
+
+  lda direction1
+  bne :+                          ; Looking to the left?
+  lda #%00000000
   sta shadow_oam+2                ; color = 0, no flipping
+:
+  lda direction1
+  cmp #1
+  bne :+                          ; Looking to the right?
+  lda #%01000000
+  sta shadow_oam+2                ; color = 0, flipping
+:                                 ; Notice that because the color doesn't change we
+                                  ; don't need to write to this byte every frame
+
 
   ; player 2
   lda y_player2
   sta shadow_oam+4                ; Y
   lda x_player2
   sta shadow_oam+7                ; X
-  lda #$01
+  lda animation_cur_tile2
   sta shadow_oam+5                ; tile number = 1
-  lda #$01
-  sta shadow_oam+6                ; color = 1, no flipping
+
+  lda direction2
+  bne :+                          ; Looking to the left?
+  lda #%00000001
+  sta shadow_oam+6                ; color = 0, no flipping
+:
+  lda direction2
+  cmp #1
+  bne :+                          ; Looking to the right?
+  lda #%01000001
+  sta shadow_oam+6                ; color = 0, flipping
+:                                 ; Notice that because the color doesn't change we
+                                  ; don't need to write to this byte every frame
 
   ; arrow 1 velocity
   lda arrow1
@@ -411,21 +556,24 @@ mainLoop:
   sta shadow_oam+8                ; Y
   lda x_arrow1
   sta shadow_oam+11               ; X
-  lda #$02
-  sta shadow_oam+9                ; tile numeber = 2
+  lda #64
+  sta shadow_oam+9                ; tile number = 2
   lda #$02
   sta shadow_oam+10               ; color = 2, no flipping
 
   ; arrow player 2
   lda y_arrow2
-  sta shadow_oam+12                ; Y
+  sta shadow_oam+12               ; Y
   lda x_arrow2
   sta shadow_oam+15               ; X
-  lda #$03
-  sta shadow_oam+13                ; tile numeber = 3
+  lda #65
+  sta shadow_oam+13               ; tile number = 3
   lda #$01
   sta shadow_oam+14               ; color = 2, no flipping
 
+:
+  lda vblank
+  beq :-
 
   jmp mainLoop                    ; jump back to Forever, infinite loop
 
@@ -488,9 +636,8 @@ irq:
 ;;;;;;;;;;;;;;
 
 .segment "CHARS"
-.incbin "gfx/arqueiro.chr"
-.incbin "gfx/arqueiro.chr"
+.incbin "gfx/arqueiro_states.chr"
 .incbin "gfx/flecha.chr"
 .incbin "gfx/flecha.chr"
-.res 4032
+.res 3040
 .incbin "gfx/bg.chr"

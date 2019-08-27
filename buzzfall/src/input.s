@@ -4,6 +4,9 @@ input_player_1:
   lda #$00
   sta $4016                       ; stop polling input
 
+  lda #0
+  sta walking1                    ; reset "walking"
+
   ;player 1
   lda $4016                       ; A -> Jump
   and #%00000001
@@ -39,7 +42,7 @@ input_player_1:
   sta y_arrow1
   lda x_player1
   sta x_arrow1
-  lda direction
+  lda direction1
   sta d_arrow1                    ; define the arrow direction
   lda #$1
   sta arrow1                      ; arrow on screen
@@ -50,19 +53,21 @@ input_player_1:
   and #%00000001
   beq :+
   lda #$2
-  sta direction
+  sta direction1
 :
   lda $4016                       ; Down
   and #%00000001
   beq :+
   lda #$3
-  sta direction
+  sta direction1
 :
   lda $4016                       ; Left
   and #%00000001
   beq :+
+  lda #1
+  sta walking1                    ; set "walking"
   lda #$0
-  sta direction
+  sta direction1
   dec x_player1
   lda #<(y_player1)               ; collision
   sta check_collision_y_addrs
@@ -91,8 +96,10 @@ input_player_1:
   lda $4016                       ; Right
   and #%00000001
   beq :+
+  lda #1
+  sta walking1                    ; set "walking"
   lda #$1
-  sta direction
+  sta direction1
   inc x_player1
   lda #<(y_player1)               ; collision
   sta check_collision_y_addrs
@@ -125,6 +132,9 @@ input_player_2:
   sta $4017                       ; poll input
   lda #$00
   sta $4017                       ; stop polling input
+
+  lda #0
+  sta walking2                    ; reset "walking"
 
   ;player 2
   lda $4017                       ; A -> Jump
@@ -167,10 +177,22 @@ input_player_2:
   lda $4017                       ; Select
   lda $4017                       ; Start
   lda $4017                       ; Up
+  beq :+
+  lda #$2
+  sta direction2
+:
   lda $4017                       ; Down
+  beq :+
+  lda #$3
+  sta direction2
+:
   lda $4017                       ; Left
   and #%00000001
   beq :+
+  lda #1
+  sta walking2                    ; set "walking"
+  lda #$0
+  sta direction2
   dec x_player2
   lda #<(y_player2)               ; collision
   sta check_collision_y_addrs
@@ -196,9 +218,14 @@ input_player_2:
   sta check_collision_dir
   jsr check_collision_segmented
 :
+
   lda $4017                       ; Right
   and #%00000001
   beq :+
+  lda #1
+  sta walking2                    ; set "walking"
+  lda #$1
+  sta direction2
   inc x_player2
   lda #<(y_player2)               ; collision
   sta check_collision_y_addrs
