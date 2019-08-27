@@ -15,6 +15,7 @@ input_player_1:
   sta jump_counter1
   lda #1
   sta jump_disabled1
+  jmp @reset_velocity
 :
   lda walljump_disabled1
   bne @skipJump
@@ -24,6 +25,9 @@ input_player_1:
   sta jump_counter1
   lda #30
   sta walljump_cooldown1
+  lda #1
+  sta walljump_disabled1          ; reset walljump state
+@reset_velocity:
   lda #0
   sta v_player1                   ; reset velocity
 
@@ -133,6 +137,7 @@ input_player_2:
   sta jump_counter2
   lda #1
   sta jump_disabled2
+  jmp @reset_velocity
 :
   lda walljump_disabled2
   bne @skipJump
@@ -142,6 +147,9 @@ input_player_2:
   sta jump_counter2
   lda #30
   sta walljump_cooldown2
+  lda #1
+  sta walljump_disabled2          ; reset walljump state
+@reset_velocity:
   lda #0
   sta v_player2                   ; reset velocity
 

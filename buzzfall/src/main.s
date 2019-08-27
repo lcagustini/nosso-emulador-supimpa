@@ -391,9 +391,9 @@ mainLoop:
   sta check_collision_x_addrs
   lda #>(x_arrow1)
   sta check_collision_x_addrs+1
-  lda #<(v_arrow1)
+  lda #<(dummy)
   sta check_collision_v_addrs
-  lda #>(v_arrow1)
+  lda #>(dummy)
   sta check_collision_v_addrs+1
   lda #<(dummy)
   sta check_collision_wj_addrs
