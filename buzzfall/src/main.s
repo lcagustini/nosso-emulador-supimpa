@@ -353,8 +353,36 @@ mainLoop:
 
   ;;;;; UPDATE ANIMATIONS ;;;;;
 
+  lda walljump_disabled1
+  beq @skipJumpAnimation1         ; if player is in the air
+  lda jump_disabled1
+  beq @skipJumpAnimation1
+  lda animation_cur_tile1
+  lsr
+  lsr
+  lsr
+  cmp #3
+  bne @skipJumpAnimation1         ; and he is in walljump animation
+  lda #16
+  sta animation_cur_tile1
+@skipJumpAnimation1:
+
+  lda walljump_disabled2
+  beq @skipJumpAnimation2         ; if player is in the air
+  lda jump_disabled2
+  beq @skipJumpAnimation2
+  lda animation_cur_tile2
+  lsr
+  lsr
+  lsr
+  cmp #3
+  bne @skipJumpAnimation2         ; and he is in walljump animation
+  lda #16
+  sta animation_cur_tile2
+@skipJumpAnimation2:
+
   lda walking1
-  bne @skipIdleAnimation1         ; if player is walking
+  bne @skipIdleAnimation1         ; if player isn't walking
   lda jump_disabled1
   bne @skipIdleAnimation1         ; and jump is enabled
   lda animation_cur_tile1
@@ -368,7 +396,7 @@ mainLoop:
 @skipIdleAnimation1:
 
   lda walking2
-  bne @skipIdleAnimation2         ; if player is walking
+  bne @skipIdleAnimation2         ; if player isn't walking
   lda jump_disabled2
   bne @skipIdleAnimation2         ; and jump is enabled
   lda animation_cur_tile2
@@ -418,10 +446,19 @@ mainLoop:
   lda animation_cur_tile1
   and #%111                       ; a = animation_cur_tile MOD 8
   tax                             ; X is the animation frame (each animation has 6 frames)
-  cmp #06                         ; a == 6 ? (go back to 0) : (skip)
-  bne :+
+  cmp #06                         ; a == 6 ? (go back to 0 if its a looping anim, otherwise go back to 5) : (skip)
+  bne @changeAnimationFrame1
+  lda animation_cur_tile1         ; check if it is a looping animation
+  lsr
+  lsr
+  lsr
+  cmp #2
+  bmi @loopingAnim1
+  ldx #5
+  jmp @changeAnimationFrame1
+@loopingAnim1:
   ldx #0
-:
+@changeAnimationFrame1:
   stx add_buffer
   lda animation_cur_tile1
   and #%11111000
@@ -436,10 +473,19 @@ mainLoop:
   lda animation_cur_tile2
   and #%111                       ; a = animation_cur_tile MOD 8
   tax                             ; X is the animation frame (each animation has 6 frames)
-  cmp #06                         ; a == 6 ? (go back to 0) : (skip)
-  bne :+
+  cmp #06                         ; a == 6 ? (go back to 0 if its a looping anim, otherwise go back to 5) : (skip)
+  bne @changeAnimationFrame2
+  lda animation_cur_tile2         ; check if it is a looping animation
+  lsr
+  lsr
+  lsr
+  cmp #2
+  bmi @loopingAnim2
+  ldx #5
+  jmp @changeAnimationFrame2
+@loopingAnim2:
   ldx #0
-:
+@changeAnimationFrame2:
   stx add_buffer
   lda animation_cur_tile2
   and #%11111000

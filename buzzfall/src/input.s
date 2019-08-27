@@ -18,6 +18,8 @@ input_player_1:
   sta jump_counter1
   lda #1
   sta jump_disabled1
+  lda #16
+  sta animation_cur_tile1         ; change to jump animation
   jmp @reset_velocity
 :
   lda walljump_disabled1
@@ -30,6 +32,8 @@ input_player_1:
   sta walljump_cooldown1
   lda #1
   sta walljump_disabled1          ; reset walljump state
+  lda #24
+  sta animation_cur_tile1         ; change to walljump animation
 @reset_velocity:
   lda #0
   sta v_player1                   ; reset velocity
@@ -147,6 +151,8 @@ input_player_2:
   sta jump_counter2
   lda #1
   sta jump_disabled2
+  lda #16
+  sta animation_cur_tile2         ; change to jump animation
   jmp @reset_velocity
 :
   lda walljump_disabled2
@@ -159,6 +165,8 @@ input_player_2:
   sta walljump_cooldown2
   lda #1
   sta walljump_disabled2          ; reset walljump state
+  lda #24
+  sta animation_cur_tile2         ; change to walljump animation
 @reset_velocity:
   lda #0
   sta v_player2                   ; reset velocity
