@@ -30,7 +30,7 @@ input_player_1:
 @skipJump:
   lda $4016                       ; B
   and #%00000001
-  beq @skipArrow
+  beq :+
   lda y_player1
   sta y_arrow1
   lda x_player1
@@ -39,8 +39,7 @@ input_player_1:
   sta d_arrow1                    ; define the arrow direction
   lda #$1
   sta arrow1                      ; arrow on screen
-
-@skipArrow:
+:
   lda $4016                       ; Select
   lda $4016                       ; Start
   lda $4016                       ; Up

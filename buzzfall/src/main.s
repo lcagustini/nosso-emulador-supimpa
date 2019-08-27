@@ -29,6 +29,7 @@ add_buffer:   .res 1
 add_buffer2:  .res 1
 
 direction:    .res 1            ; direction flag (0 -> left / 1 -> right / 2 -> up / 3->down)
+dummy:        .res 1
 
 ; Player 1 variables
 x_player1:    .res 1
@@ -359,21 +360,51 @@ mainLoop:
   cmp #$0
   bne @right
   dec x_arrow1
+  dec x_arrow1
+  ldx #0
   jmp :+
 @right:
   cmp #$1
   bne @up
   inc x_arrow1
+  inc x_arrow1
+  ldx #0
   jmp :+
 @up:
   cmp #$2
   bne @down
   dec y_arrow1
+  dec y_arrow1
+  ldx #1
   jmp :+
 @down:
   cmp #$3
   inc y_arrow1
+  inc y_arrow1
+  ldx #1
 :
+  lda #<(y_arrow1)
+  sta check_collision_y_addrs
+  lda #>(y_arrow1)
+  sta check_collision_y_addrs+1
+  lda #<(x_arrow1)
+  sta check_collision_x_addrs
+  lda #>(x_arrow1)
+  sta check_collision_x_addrs+1
+  lda #<(v_arrow1)
+  sta check_collision_v_addrs
+  lda #>(v_arrow1)
+  sta check_collision_v_addrs+1
+  lda #<(dummy)
+  sta check_collision_wj_addrs
+  lda #>(dummy)
+  sta check_collision_wj_addrs+1
+  lda #<(dummy)
+  sta check_collision_j_addrs
+  lda #>(dummy)
+  sta check_collision_j_addrs+1
+  stx check_collision_dir
+  jsr check_collision_segmented
 
   ; arrow player 1
   lda y_arrow1
