@@ -42,14 +42,14 @@ input_player_1:
   lda $4016                       ; B
   and #%00000001
   beq :+
+  ldx arrow_size
   lda y_player1
-  sta y_arrow1
+  sta y_arrow, x
   lda x_player1
-  sta x_arrow1
+  sta x_arrow, x
   lda direction1
-  sta d_arrow1                    ; define the arrow direction
-  lda #$1
-  sta arrow1                      ; arrow on screen
+  sta d_arrow, x                  ; define the arrow direction
+  inc arrow_size
 
   lda animation_cur_tile1         ; if it isn't in shooting animation
   lsr
@@ -183,11 +183,15 @@ input_player_2:
 @skipJump:
   lda $4017                       ; B
   and #%00000001
-  beq @skipArrow
+  beq :+
+  ldx arrow_size
   lda y_player2
-  sta y_arrow2
+  sta y_arrow, x
   lda x_player2
-  sta x_arrow2
+  sta x_arrow, x
+  lda direction2
+  sta d_arrow, x                  ; define the arrow direction
+  inc arrow_size
 
   lda animation_cur_tile2         ; if it isn't in shooting animation
   lsr
@@ -198,8 +202,6 @@ input_player_2:
   lda #32
   sta animation_cur_tile2         ; change to shooting animation
 :
-@skipArrow:
-
   lda $4017                       ; Select
   lda $4017                       ; Start
   lda $4017                       ; Up

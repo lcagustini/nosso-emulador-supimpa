@@ -42,7 +42,7 @@ jump_counter1:  .res 1 ;Fixed-point -> 5.3
 jump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
 walljump_cooldown1: .res 1
 walljump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
-walking2:     .res 1 ; 0 -> not walking / 1 -> walking
+animation_cur_tile1: .res 1
 ;
 
 ; Player 2 variables
@@ -50,27 +50,21 @@ direction2:   .res 1            ; direction flag (0 -> left / 1 -> right / 2 -> 
 x_player2:    .res 1
 y_player2:    .res 1
 v_player2:    .res 1 ;Fixed-point -> 5.3
+walking2:     .res 1 ; 0 -> not walking / 1 -> walking
 
 jump_counter2:  .res 1 ;Fixed-point -> 5.3
 jump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
 walljump_cooldown2: .res 1
 walljump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
+animation_cur_tile2: .res 1
 ;
 
 ; Arrow 1 variables
-arrow1:       .res 1        ; 1 -> arrow 1 on screen / 0 -> no arrow
-x_arrow1:     .res 1
-y_arrow1:     .res 1
-d_arrow1:     .res 1
-animation_cur_tile1: .res 1
-;
-
-; Arrow 2 variables
-arrow2:       .res 1        ; 1 -> arrow 2 on screen / 0 -> no arrow
-x_arrow2:     .res 1
-y_arrow2:     .res 1
-d_arrow2:     .res 1
-animation_cur_tile2: .res 1
+arrow_size:  .res 1        ; 1 -> arrow 1 on screen / 0 -> no arrow
+x_arrow:     .res 10
+y_arrow:     .res 10
+d_arrow:     .res 10
+owner_arrow: .res 10       ; 0 -> no one / 1 -> player 1 / 2-> player 2
 ;
 
 ; check_collision args
@@ -221,14 +215,6 @@ LoadPalettesLoop:
   sta x_player2
   sta y_player2
 
-;
-
-; Set directions variables
-  lda #$00
-  sta arrow1
-  lda #$00 
-  lda arrow2
-
 ; Initialize animations
   lda #ANIMATION_TIMER
   sta animation_timer
@@ -241,6 +227,9 @@ LoadPalettesLoop:
   sta shadow_oam+2                ; color = 0, no flipping
   lda #1
   sta shadow_oam+6                ; color = 1, no flipping
+
+  lda #0
+  sta arrow_size
 
 mainLoop:
   lda #$00
@@ -576,80 +565,98 @@ mainLoop:
                                   ; don't need to write to this byte every frame
 
   ; arrow 1 velocity
-  lda arrow1
-  cmp #$1                         ; check if the player 1 threw the arrow
-  bne :+
-  lda d_arrow1
+  ldx #0
+@arrow_loop:
+  cpx arrow_size
+  bpl :+
+  jmp @arrow_loop_break
+:
+  lda d_arrow, x
 @left:                            ; check the direction of the arrow                  
   cmp #$0
   bne @right
-  dec x_arrow1
-  dec x_arrow1
-  ldx #0
+  dec x_arrow, x
+  dec x_arrow, x
+  ldy #0
   jmp :+
 @right:
   cmp #$1
   bne @up
-  inc x_arrow1
-  inc x_arrow1
-  ldx #0
+  inc x_arrow, x
+  inc x_arrow, x
+  ldy #0
   jmp :+
 @up:
   cmp #$2
   bne @down
-  dec y_arrow1
-  dec y_arrow1
-  ldx #1
+  dec y_arrow, x
+  dec y_arrow, x
+  ldy #1
   jmp :+
 @down:
   cmp #$3
-  inc y_arrow1
-  inc y_arrow1
-  ldx #1
+  inc y_arrow, x
+  inc y_arrow, x
+  ldy #1
 :
-  lda #<(y_arrow1)
+  txa
+  pha
+
+  stx add_buffer
+  lda #<(y_arrow)
+  clc
+  adc add_buffer
   sta check_collision_y_addrs
-  lda #>(y_arrow1)
+  lda #>(y_arrow)
   sta check_collision_y_addrs+1
-  lda #<(x_arrow1)
+  lda #<(x_arrow)
+  clc
+  adc add_buffer
   sta check_collision_x_addrs
-  lda #>(x_arrow1)
+  lda #>(x_arrow)
   sta check_collision_x_addrs+1
   lda #<(dummy)
   sta check_collision_v_addrs
-  lda #>(dummy)
-  sta check_collision_v_addrs+1
-  lda #<(dummy)
   sta check_collision_wj_addrs
-  lda #>(dummy)
-  sta check_collision_wj_addrs+1
-  lda #<(dummy)
   sta check_collision_j_addrs
   lda #>(dummy)
+  sta check_collision_v_addrs+1
+  sta check_collision_wj_addrs+1
   sta check_collision_j_addrs+1
-  stx check_collision_dir
+  sty check_collision_dir
   jsr check_collision_segmented
 
+  pla
+  tax
+
   ; arrow player 1
-  lda y_arrow1
-  sta shadow_oam+8                ; Y
-  lda x_arrow1
-  sta shadow_oam+11               ; X
-  lda #64
-  sta shadow_oam+9                ; tile number = 2
-  lda #$02
-  sta shadow_oam+10               ; color = 2, no flipping
+  txa
+  asl
+  asl
+  clc
+  adc #8
+  clc
+  adc #<(shadow_oam)
+  sta add_buffer
+  lda #>(shadow_oam)
+  sta add_buffer2
 
-  ; arrow player 2
-  lda y_arrow2
-  sta shadow_oam+12               ; Y
-  lda x_arrow2
-  sta shadow_oam+15               ; X
-  lda #65
-  sta shadow_oam+13               ; tile number = 3
-  lda #$01
-  sta shadow_oam+14               ; color = 2, no flipping
+  ldy #0
+  lda y_arrow, x
+  sta (add_buffer), y             ; Y
+  ldy #1
+  lda #%100
+  sta (add_buffer), y             ; tile number = 2
+  ldy #2
+  lda #%10
+  sta (add_buffer), y             ; color = 2, no flipping
+  ldy #3
+  lda x_arrow, x
+  sta (add_buffer), y             ; X
 
+  inx
+  jmp @arrow_loop
+@arrow_loop_break:
 :
   lda vblank
   beq :-
@@ -717,6 +724,5 @@ irq:
 .segment "CHARS"
 .incbin "gfx/arqueiro_states.chr"
 .incbin "gfx/flecha.chr"
-.incbin "gfx/flecha.chr"
-.res 3040
+.res 3056
 .incbin "gfx/bg.chr"
