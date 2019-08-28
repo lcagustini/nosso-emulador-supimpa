@@ -209,6 +209,10 @@ LoadPalettesLoop:
   lda #%00011110                  ; enable sprites and background
   sta $2001
 
+; init sound registers
+  jsr init_sound
+
+
 ; Put players inside the walls
   lda #20
   sta x_player1
@@ -701,6 +705,7 @@ int2fixed:
 
 ;;;;;;;;;;;;;;
 
+.include "audio.s"
 .include "input.s"
 
 ;;;;;;;;;;;;;;

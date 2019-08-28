@@ -38,6 +38,17 @@ input_player_1:
   lda #0
   sta v_player1                   ; reset velocity
 
+; jumping sound
+; pulse channel w/ sweep
+  lda #%10011011
+  sta $4001
+  lda #%11010011
+  sta $4002
+  lda #$00
+  sta $4003
+  lda #%01001111
+  sta $4000                       
+
 @skipJump:
   lda $4016                       ; B
   and #%00000001
@@ -63,6 +74,24 @@ input_player_1:
 
   lda #32
   sta animation_cur_tile1         ; change to shooting animation
+
+; shooting audio
+; pulse 1 channel
+  lda #$0
+  sta $4001
+  lda #%11001001                  
+  sta $4002                       
+  lda #$00
+  sta $4003                       
+  lda #%00010011
+  sta $4000                       
+; noise channel
+  lda #%00011111                  
+  sta $400C                       ; constant sound and volume 
+  lda #%00000111
+  sta $400E                       ; period
+  lda #%00011000                
+  sta $400F                       ; counter;
 :
   lda $4016                       ; Select
   lda $4016                       ; Start
@@ -183,7 +212,16 @@ input_player_2:
 @reset_velocity:
   lda #0
   sta v_player2                   ; reset velocity
-
+; jumping sound
+; pulse channel w/ sweep
+  lda #%10011011
+  sta $4001
+  lda #%11010011
+  sta $4002
+  lda #$00
+  sta $4003
+  lda #%01001111
+  sta $4000
 @skipJump:
   lda $4017                       ; B
   and #%00000001
@@ -209,6 +247,24 @@ input_player_2:
 
   lda #32
   sta animation_cur_tile2         ; change to shooting animation
+
+; shooting audio
+; pulse 1 channel
+  lda #$0
+  sta $4001
+  lda #%11001001                  
+  sta $4002                       
+  lda #$00
+  sta $4003                       
+  lda #%00010011
+  sta $4000                       
+; noise channel
+  lda #%00011111                  
+  sta $400C                       ; constant sound and volume 
+  lda #%00000111
+  sta $400E                       ; period
+  lda #%00011000                
+  sta $400F                       ; counter;
 :
   lda $4017                       ; Select
   lda $4017                       ; Start
