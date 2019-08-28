@@ -37,6 +37,7 @@ x_player1:    .res 1
 y_player1:    .res 1
 v_player1:    .res 1 ;Fixed-point -> 5.3
 walking1:     .res 1 ; 0 -> not walking / 1 -> walking
+arrows_player1: .res 1
 
 jump_counter1:  .res 1 ;Fixed-point -> 5.3
 jump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
@@ -51,6 +52,7 @@ x_player2:    .res 1
 y_player2:    .res 1
 v_player2:    .res 1 ;Fixed-point -> 5.3
 walking2:     .res 1 ; 0 -> not walking / 1 -> walking
+arrows_player2: .res 1
 
 jump_counter2:  .res 1 ;Fixed-point -> 5.3
 jump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
@@ -230,6 +232,11 @@ LoadPalettesLoop:
 
   lda #0
   sta arrow_size
+
+; Initialize payers arrow count
+  lda #2
+  sta arrows_player1
+  sta arrows_player2
 
 mainLoop:
   lda #$00
@@ -565,9 +572,9 @@ mainLoop:
                                   ; don't need to write to this byte every frame
 
   ; arrow 1 velocity
-  ldx #0
+  ldx arrow_size
 @arrow_loop:
-  cpx arrow_size
+  cpx #0
   bpl :+
   jmp @arrow_loop_break
 :
@@ -645,7 +652,7 @@ mainLoop:
   lda y_arrow, x
   sta (add_buffer), y             ; Y
   ldy #1
-  lda #%100
+  lda #64
   sta (add_buffer), y             ; tile number = 2
   ldy #2
   lda #%10
@@ -654,7 +661,7 @@ mainLoop:
   lda x_arrow, x
   sta (add_buffer), y             ; X
 
-  inx
+  dex
   jmp @arrow_loop
 @arrow_loop_break:
 :

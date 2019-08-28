@@ -42,6 +42,15 @@ input_player_1:
   lda $4016                       ; B
   and #%00000001
   beq :+
+  lda animation_cur_tile1         ; if it isn't in shooting animation
+  lsr
+  lsr
+  lsr
+  cmp #4
+  beq :+
+
+  lda arrows_player1
+  beq :+
   ldx arrow_size
   lda y_player1
   sta y_arrow, x
@@ -50,13 +59,8 @@ input_player_1:
   lda direction1
   sta d_arrow, x                  ; define the arrow direction
   inc arrow_size
+  dec arrows_player1
 
-  lda animation_cur_tile1         ; if it isn't in shooting animation
-  lsr
-  lsr
-  lsr
-  cmp #4
-  beq :+
   lda #32
   sta animation_cur_tile1         ; change to shooting animation
 :
@@ -184,6 +188,15 @@ input_player_2:
   lda $4017                       ; B
   and #%00000001
   beq :+
+  lda animation_cur_tile2         ; if it isn't in shooting animation
+  lsr
+  lsr
+  lsr
+  cmp #4
+  beq :+
+
+  lda arrows_player2
+  beq :+
   ldx arrow_size
   lda y_player2
   sta y_arrow, x
@@ -192,24 +205,21 @@ input_player_2:
   lda direction2
   sta d_arrow, x                  ; define the arrow direction
   inc arrow_size
+  dec arrows_player2
 
-  lda animation_cur_tile2         ; if it isn't in shooting animation
-  lsr
-  lsr
-  lsr
-  cmp #4
-  beq :+
   lda #32
   sta animation_cur_tile2         ; change to shooting animation
 :
   lda $4017                       ; Select
   lda $4017                       ; Start
   lda $4017                       ; Up
+  and #%00000001
   beq :+
   lda #$2
   sta direction2
 :
   lda $4017                       ; Down
+  and #%00000001
   beq :+
   lda #$3
   sta direction2
