@@ -1,5 +1,9 @@
 JUMP_BOOST = %0111
 ANIMATION_TIMER = 8
+LOADADDY = $abd2
+INITADDY = $b200
+PLAYADDY = $b203
+
 
 .segment "HEADER"
 .byte "NES"                       ; signature
@@ -10,6 +14,11 @@ ANIMATION_TIMER = 8
 .byte $00                         ; ROM control byte two
 .byte $00                         ; # of 8kb RAM banks
 .byte $00                         ; reserved
+
+
+.segment "MUSIC"
+.incbin "HereComes.nsf"
+
 
 .segment "VECTORS"
 .addr nmi
@@ -211,6 +220,7 @@ LoadPalettesLoop:
 
 ; init sound registers
   jsr init_sound
+  jsr InitMusic
 
 
 ; Put players inside the walls
@@ -720,6 +730,9 @@ nmi:                              ; VBLANK interrupt
   sta $2005
   sta $2005
   lda #$01
+
+  ;jsr PLAYADDY                    ; play the music
+
   sta vblank
   rti
 
