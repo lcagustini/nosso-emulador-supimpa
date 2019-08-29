@@ -82,7 +82,7 @@ double color_distance(int a, int b) {
   return deltaE(blab, alab);
 }
 
-int tile_to_grid(unsigned char *data) {
+void tile_to_grid(unsigned char *data) {
   for (int j = 0; j < 8; j++) {
     for (int i = 0; i < 8; i++) {
       int r = data[3*8*j + 3*i + 0];

@@ -656,10 +656,28 @@ mainLoop:
   lda y_arrow, x
   sta (add_buffer), y             ; Y
   ldy #1
+  lda d_arrow, x
+  cmp #0
+  beq :+
+  cmp #1
+  beq :+
+  lda #65
+  jmp @set_arrow_oam_1
+:
   lda #64
+@set_arrow_oam_1:
   sta (add_buffer), y             ; tile number = 2
   ldy #2
+  lda d_arrow, x
+  cmp #0
+  beq :+
+  cmp #2
+  beq :+
+  lda #%11000010
+  jmp @set_arrow_oam_2
+:
   lda #%10
+@set_arrow_oam_2:
   sta (add_buffer), y             ; color = 2, no flipping
   ldy #3
   lda x_arrow, x
@@ -736,5 +754,6 @@ irq:
 .segment "CHARS"
 .incbin "gfx/arqueiro_states.chr"
 .incbin "gfx/flecha.chr"
-.res 3056
+.incbin "gfx/flecha_vertical.chr"
+.res 3040
 .incbin "gfx/bg.chr"
