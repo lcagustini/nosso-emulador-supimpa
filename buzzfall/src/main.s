@@ -38,6 +38,7 @@ y_player1:    .res 1
 v_player1:    .res 1 ;Fixed-point -> 5.3
 walking1:     .res 1 ; 0 -> not walking / 1 -> walking
 arrows_player1: .res 1
+is_dead1:     .res 1
 
 jump_counter1:  .res 1 ;Fixed-point -> 5.3
 jump_disabled1: .res 1 ;0 -> can jump / 1 -> can't jump
@@ -53,6 +54,7 @@ y_player2:    .res 1
 v_player2:    .res 1 ;Fixed-point -> 5.3
 walking2:     .res 1 ; 0 -> not walking / 1 -> walking
 arrows_player2: .res 1
+is_dead2:    .res 1
 
 jump_counter2:  .res 1 ;Fixed-point -> 5.3
 jump_disabled2: .res 1 ;0 -> can jump / 1 -> can't jump
@@ -67,6 +69,13 @@ x_arrow:     .res 10
 y_arrow:     .res 10
 d_arrow:     .res 10
 owner_arrow: .res 10       ; 0 -> no one / 1 -> player 1 / 2-> player 2
+;
+
+; test_sprite_collision args
+test_sprite_x1:  .res 1 
+test_sprite_x2:  .res 1
+test_sprite_y1:  .res 1
+test_sprite_y2:  .res 1
 ;
 
 ; check_collision args
@@ -246,8 +255,14 @@ mainLoop:
   lda #$00
   sta vblank                      ; reset vblank lock
 
+  lda is_dead1
+  bne :+                          ; verify if player 1 is dead
   jsr input_player_1
+:
+  lda is_dead2
+  bne :+                          ; verify if player 2 is dead
   jsr input_player_2
+:
 
   ; player1 gravity
   inc v_player1
@@ -582,6 +597,11 @@ mainLoop:
   bpl :+
   jmp @arrow_loop_break
 :
+  lda x_arrow, x
+  pha
+  lda y_arrow, x
+  pha
+
   lda d_arrow, x
 @left:                            ; check the direction of the arrow                  
   cmp #$0
@@ -640,6 +660,44 @@ mainLoop:
   pla
   tax
 
+  pla
+  tay
+  pla
+  cmp x_arrow, x
+  bne :+
+  tya
+  cmp y_arrow, x
+  bne :+
+  lda #0
+  sta owner_arrow, x
+:
+
+  lda x_arrow, x
+  sta test_sprite_x1
+  lda y_arrow, x
+  sta test_sprite_y1
+  lda x_player1
+  sta test_sprite_x2
+  lda y_player1
+  sta test_sprite_y2
+  jsr test_sprite_collision
+
+  cmp #0
+  bne :+
+  lda owner_arrow, x
+  cmp #1
+  beq :+
+  cmp #2
+  beq @take_damage1
+  
+  jmp :+
+@take_damage1:
+  lda #1
+  sta is_dead1
+  lda #$FE
+  sta x_player1
+  sta x_player2
+:
   ; arrow player 1
   txa
   asl
@@ -725,6 +783,7 @@ int2fixed:
 
 .include "audio.s"
 .include "input.s"
+.include "sprite.s"
 
 ;;;;;;;;;;;;;;
 

@@ -69,6 +69,8 @@ input_player_1:
   sta x_arrow, x
   lda direction1
   sta d_arrow, x                  ; define the arrow direction
+  lda #1
+  sta owner_arrow, x
   inc arrow_size
   dec arrows_player1
 
@@ -246,6 +248,8 @@ input_player_2:
   sta x_arrow, x
   lda direction2
   sta d_arrow, x                  ; define the arrow direction
+  lda #2
+  sta owner_arrow, x
   inc arrow_size
   dec arrows_player2
 
