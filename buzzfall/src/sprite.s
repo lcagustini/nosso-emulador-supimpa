@@ -5,7 +5,7 @@ test_sprite_collision:
   cmp test_sprite_x2
   php
   pla
-  and #%100000
+  and #%10000000
   sta add_buffer
   lda test_sprite_x2
   clc
@@ -13,7 +13,7 @@ test_sprite_collision:
   cmp test_sprite_x1
   php
   pla
-  and #%100000
+  and #%10000000
   ora add_buffer
   sta add_buffer
   lda test_sprite_y1
@@ -22,7 +22,7 @@ test_sprite_collision:
   cmp test_sprite_y2
   php
   pla
-  and #%100000
+  and #%10000000
   ora add_buffer
   sta add_buffer
   lda test_sprite_y2
@@ -31,6 +31,6 @@ test_sprite_collision:
   cmp test_sprite_y1
   php
   pla
-  and #%100000
+  and #%10000000
   ora add_buffer
-  rts 
+  rts

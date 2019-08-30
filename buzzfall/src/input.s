@@ -1,9 +1,4 @@
 input_player_1:
-  lda #$01
-  sta $4016                       ; poll input
-  lda #$00
-  sta $4016                       ; stop polling input
-
   lda #0
   sta walking1                    ; reset "walking"
 
@@ -47,7 +42,7 @@ input_player_1:
   lda #$00
   sta $4003
   lda #%01001111
-  sta $4000                       
+  sta $4000
 
 @skipJump:
   lda $4016                       ; B
@@ -81,25 +76,25 @@ input_player_1:
 ; pulse 1 channel
   lda #$0
   sta $4001
-  lda #%11001001                  
-  sta $4002                       
+  lda #%11001001
+  sta $4002
   lda #$00
-  sta $4003                       
+  sta $4003
   lda #%00010011
-  sta $4000                       
+  sta $4000
 ; noise channel
-  lda #%00011111                  
-  sta $400C                       ; constant sound and volume 
+  lda #%00011111
+  sta $400C                       ; constant sound and volume
   lda #%00000111
   sta $400E                       ; period
-  lda #%00011000                
+  lda #%00011000
   sta $400F                       ; counter;
 :
   lda $4016                       ; Select
   lda $4016                       ; Start
   and #%00000001
   beq :+
-  jsr reset                       ; restart game
+  jmp reset                       ; restart game
 :
   lda $4016                       ; Up
   and #%00000001
@@ -180,11 +175,6 @@ input_player_1:
   rts
 
 input_player_2:
-  lda #$01
-  sta $4017                       ; poll input
-  lda #$00
-  sta $4017                       ; stop polling input
-
   lda #0
   sta walking2                    ; reset "walking"
 
@@ -260,25 +250,25 @@ input_player_2:
 ; pulse 1 channel
   lda #$0
   sta $4001
-  lda #%11001001                  
-  sta $4002                       
+  lda #%11001001
+  sta $4002
   lda #$00
-  sta $4003                       
+  sta $4003
   lda #%00010011
-  sta $4000                       
+  sta $4000
 ; noise channel
-  lda #%00011111                  
-  sta $400C                       ; constant sound and volume 
+  lda #%00011111
+  sta $400C                       ; constant sound and volume
   lda #%00000111
   sta $400E                       ; period
-  lda #%00011000                
+  lda #%00011000
   sta $400F                       ; counter;
 :
   lda $4017                       ; Select
   lda $4017                       ; Start -
   and #%00000001
   beq :+
-  jsr reset                       ; restart game
+  jmp reset                       ; restart game
 :
   lda $4017                       ; Up
   and #%00000001

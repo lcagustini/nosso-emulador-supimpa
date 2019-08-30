@@ -72,7 +72,7 @@ owner_arrow: .res 10       ; 0 -> no one / 1 -> player 1 / 2-> player 2
 ;
 
 ; test_sprite_collision args
-test_sprite_x1:  .res 1 
+test_sprite_x1:  .res 1
 test_sprite_x2:  .res 1
 test_sprite_y1:  .res 1
 test_sprite_y2:  .res 1
@@ -254,6 +254,11 @@ LoadPalettesLoop:
 mainLoop:
   lda #$00
   sta vblank                      ; reset vblank lock
+
+  lda #$01
+  sta $4016                       ; poll input
+  lda #$00
+  sta $4016                       ; stop polling input
 
   lda is_dead1
   bne :+                          ; verify if player 1 is dead
@@ -488,7 +493,7 @@ mainLoop:
   dec animation_timer             ; decrement animation timer
   lda animation_timer
   bne @skipChangeAnimTile         ; did animation timer hit 0?
-  
+
                                   ; change animation frame for player 1
   inc animation_cur_tile1         ; move to the next animation tile
   lda animation_cur_tile1
@@ -593,17 +598,18 @@ mainLoop:
   ; arrow 1 velocity
   ldx arrow_size
 @arrow_loop:
-  cpx #0
+  cpx #1
   bpl :+
   jmp @arrow_loop_break
 :
+  dex
   lda x_arrow, x
   pha
   lda y_arrow, x
   pha
 
   lda d_arrow, x
-@left:                            ; check the direction of the arrow                  
+@left:                            ; check the direction of the arrow
   cmp #$0
   bne @right
   dec x_arrow, x
@@ -672,6 +678,7 @@ mainLoop:
   sta owner_arrow, x
 :
 
+  ; Check arrow against player 1
   lda x_arrow, x
   sta test_sprite_x1
   lda y_arrow, x
@@ -689,21 +696,146 @@ mainLoop:
   beq :+
   cmp #2
   beq @take_damage1
-  
-  jmp :+
+
+  ; Got arrow from ground
+  inc arrows_player1
+
+  txa
+  pha
+
+@delete_array_loop1:
+  cpx arrow_size
+  bpl @delete_array_loop_break1
+
+  inx
+  lda x_arrow, x
+  dex
+  sta x_arrow, x
+  inx
+  lda y_arrow, x
+  dex
+  sta y_arrow, x
+  inx
+  lda d_arrow, x
+  dex
+  sta d_arrow, x
+  inx
+  lda owner_arrow, x
+  dex
+  sta owner_arrow, x
+  inx
+  jmp @delete_array_loop1
+@delete_array_loop_break1:
+  dec arrow_size
+  lda arrow_size
+
+  asl
+  asl
+  clc
+  adc #8
+  tax
+
+  lda #$FE
+  sta shadow_oam, x
+  inx
+  inx
+  inx
+  sta shadow_oam, x
+
+  pla
+  tax
+  jmp @arrow_loop
+  ; Got hit by enemy arrow
 @take_damage1:
   lda #1
   sta is_dead1
   lda #$FE
   sta x_player1
-  sta x_player2
+  sta y_player1
 :
-  ; arrow player 1
+
+  ; Check arrow against player 2
+  lda x_arrow, x
+  sta test_sprite_x1
+  lda y_arrow, x
+  sta test_sprite_y1
+  lda x_player2
+  sta test_sprite_x2
+  lda y_player2
+  sta test_sprite_y2
+  jsr test_sprite_collision
+
+  cmp #0
+  bne :+
+  lda owner_arrow, x
+  cmp #2
+  beq :+
+  cmp #1
+  beq @take_damage2
+
+  ; Got arrow from ground
+  inc arrows_player2
+
   txa
+  pha
+
+@delete_array_loop2:
+  cpx arrow_size
+  bpl @delete_array_loop_break2
+
+  inx
+  lda x_arrow, x
+  dex
+  sta x_arrow, x
+  inx
+  lda y_arrow, x
+  dex
+  sta y_arrow, x
+  inx
+  lda d_arrow, x
+  dex
+  sta d_arrow, x
+  inx
+  lda owner_arrow, x
+  dex
+  sta owner_arrow, x
+  inx
+  jmp @delete_array_loop2
+@delete_array_loop_break2:
+  dec arrow_size
+  lda arrow_size
+
   asl
   asl
   clc
   adc #8
+  tax
+
+  lda #$FE
+  sta shadow_oam, x
+  inx
+  inx
+  inx
+  sta shadow_oam, x
+
+  pla
+  tax
+  jmp @arrow_loop
+  ; Got hit by enemy arrow
+@take_damage2:
+  lda #1
+  sta is_dead2
+  lda #$FE
+  sta x_player2
+  sta y_player2
+:
+
+  ; arrow to oam
+  txa
+  asl
+  asl                   ; multiplies by 4 to get OAM position from array index
+  clc
+  adc #8                ; skips players on OAM
   clc
   adc #<(shadow_oam)
   sta add_buffer
@@ -741,7 +873,6 @@ mainLoop:
   lda x_arrow, x
   sta (add_buffer), y             ; X
 
-  dex
   jmp @arrow_loop
 @arrow_loop_break:
 :
