@@ -919,6 +919,88 @@ int2fixed:
 ;;;;;;;;;;;;;;
 
 nmi:                              ; VBLANK interrupt
+  ;;;;; PLAYER 1 HUD ;;;;;
+  lda arrows_player1
+  sta add_buffer                  ; add_buffer = arrows_player1
+
+  lda #<(background)
+  clc
+  adc #$22 
+  sta bgPointerLo
+  lda #>(background)
+  sta bgPointerHi
+
+  lda $2002                       ; notifies cpu that we want to read/write the high value. (reset latch to high)
+  lda #$20
+  sta $2006                       ; first we write the upper byte of the ppu adress we want to write to
+  lda #$22
+  sta $2006                       ; now we write the lower byte #$00
+
+  ldy #0
+@loop_arrows_hud_p1:
+  tya
+  cmp add_buffer
+  bmi :+
+  lda (bgPointerLo), y
+  jmp @copy_and_continue_p1
+:
+  tya
+  and #1
+  beq :+
+  lda #$3C
+  jmp @copy_and_continue_p1
+:
+  lda #$3B
+
+@copy_and_continue_p1:
+  sta $2007
+  iny
+  tya
+  cmp #4
+  bne @loop_arrows_hud_p1
+
+  ;;;;; PLAYER 2 HUD ;;;;;
+  lda arrows_player2
+  sta add_buffer                  ; add_buffer = arrows_player1 + 1
+  inc add_buffer
+
+  lda #<(background)
+  clc
+  adc #$3A
+  sta bgPointerLo
+  lda #>(background)
+  sta bgPointerHi
+
+  lda $2002                       ; notifies cpu that we want to read/write the high value. (reset latch to high)
+  lda #$20
+  sta $2006                       ; first we write the upper byte of the ppu adress we want to write to
+  lda #$3A
+  sta $2006                       ; now we write the lower byte #$00
+
+  ldy #4
+@loop_arrows_hud_p2:
+  tya
+  cmp add_buffer
+  bmi :+
+  lda (bgPointerLo), y
+  jmp @copy_and_continue_p2
+:
+  tya
+  and #1
+  beq :+
+  lda #$3C
+  jmp @copy_and_continue_p2
+:
+  lda #$3B
+
+@copy_and_continue_p2:
+  sta $2007
+  dey
+  tya
+  cmp #0
+  bne @loop_arrows_hud_p2
+
+
   lda #$00
   sta $2003                       ; Why are the high and low so far apart????
   lda #$02
