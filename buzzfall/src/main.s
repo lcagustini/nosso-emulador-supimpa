@@ -217,7 +217,7 @@ LoadPalettesLoop:
   lda #20
   sta x_player1
   sta y_player1
-  lda #30
+  lda #230
   sta x_player2
   sta y_player2
 

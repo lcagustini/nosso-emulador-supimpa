@@ -95,6 +95,10 @@ input_player_1:
 :
   lda $4016                       ; Select
   lda $4016                       ; Start
+  and #%00000001
+  beq :+
+  jsr reset                       ; restart game
+:
   lda $4016                       ; Up
   and #%00000001
   beq :+
@@ -267,7 +271,11 @@ input_player_2:
   sta $400F                       ; counter;
 :
   lda $4017                       ; Select
-  lda $4017                       ; Start
+  lda $4017                       ; Start -
+  and #%00000001
+  beq :+
+  jsr reset                       ; restart game
+:
   lda $4017                       ; Up
   and #%00000001
   beq :+
