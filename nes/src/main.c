@@ -12,13 +12,30 @@
 #define COLOR_YELLOW "\033[01;33m"
 #define COLOR_RESET "\033[0m"
 
+#define CPU_RAM 8000
+
+struct {
+  struct {
+    uint8_t a;
+    uint8_t x;
+    uint8_t y;
+
+    uint8_t p;
+    uint8_t sp;
+
+    uint16_t pc;
+  } rb;
+
+  uint8_t ram[CPU_RAM];
+} cpu;
+
 int main(int argc, char* argv[]) {
   if (argc <= 1) {
-    fprintf(stderr, "Rom file needed!\n");
+    fprintf(stderr, COLOR_RED "Rom file needed!\n");
     return 1;
   }
 
-  FILE *rom = fopen(argv[1], "rb");
+  FILE *rom_file = fopen(argv[1], "rb");
 
   return 0;
 }
