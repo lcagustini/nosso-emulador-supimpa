@@ -12,7 +12,7 @@
 #define COLOR_YELLOW "\033[01;33m"
 #define COLOR_RESET "\033[0m"
 
-#define CPU_RAM 8000
+#define CPU_RAM 8000 //should look up the correct size
 
 struct {
   struct {
