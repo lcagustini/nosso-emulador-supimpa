@@ -52,6 +52,8 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+bin/
+
 *.nes
 *.nes.deb
 img_to_chr/*.png
