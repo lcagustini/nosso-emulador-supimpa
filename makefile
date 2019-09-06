@@ -1,4 +1,5 @@
 CC=gcc
+CXX=g++
 CFLAGS=-O3
 
 TST=./tst
@@ -6,6 +7,7 @@ RES=./res
 BIN=./bin
 LOG=./log
 EXT=./ext
+NES_O=./bin/main.o
 NES=./bin/main.x
 
 TESTS=$(addprefix ${BIN}/, $(notdir $(patsubst %.s,%,$(sort $(wildcard ${TST}/*.s)))))
@@ -16,7 +18,11 @@ CROSS_AS_C=${EXT}/asm6/asm6.c
 all: ${BIN} ${LOG} ${NES}
 
 ${NES}:
-	${CC} ${CFLAGS} src/main.c -o ${NES}
+	${CXX} ${CFLAGS} src/log.cpp -c
+	@mv log.o bin/
+	${CC} ${CFLAGS} src/main.c -c
+	@mv main.o bin/
+	${CC} ${NES_O} bin/log.o -o ${NES} -lstdc++
 
 ${BIN}:
 	@mkdir -p ${BIN}
