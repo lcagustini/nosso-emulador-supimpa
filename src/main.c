@@ -56,6 +56,8 @@ int main(int argc, char* argv[]) {
   cartridge.data_size = fread(cartridge.data, 1, sizeof(cartridge.data), rom_file);
   fclose(rom_file);
 
+  cpu.rb.pc = readCPUByte(0xFFFC) | readCPUByte(0xFFFD) << 8;
+
   while (true) {
     uint8_t opcode = getInstructionByte();
 
