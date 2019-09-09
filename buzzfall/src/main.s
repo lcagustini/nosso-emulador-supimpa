@@ -925,7 +925,7 @@ nmi:                              ; VBLANK interrupt
 
   lda #<(background)
   clc
-  adc #$22 
+  adc #$22
   sta bgPointerLo
   lda #>(background)
   sta bgPointerHi
