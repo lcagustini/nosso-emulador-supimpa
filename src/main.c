@@ -39,6 +39,7 @@ struct {
 } cartridge;
 
 #include "memory.c"
+#include "cpu.c"
 
 int main(int argc, char* argv[]) {
   if (argc <= 1) {
@@ -61,11 +62,7 @@ int main(int argc, char* argv[]) {
   while (true) {
     uint8_t opcode = getInstructionByte();
 
-    switch (opcode) {
-      default:
-        fprintf(stderr, COLOR_RED "Unimplemented OP Code: 0x%X\n", opcode);
-        return 1;
-    }
+    doInstruction(opcode);
   }
 
   print(0xFF, 0xEE, 0xDD, 0xCCCC, 0xBBBB, 0xAA);

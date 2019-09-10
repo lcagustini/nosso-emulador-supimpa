@@ -21,3 +21,39 @@ uint16_t getInstructionAddrs() {
   cpu.rb.pc++;
   return addrs;
 }
+
+uint8_t zeroPageByte(uint8_t addrs) {
+  return readCPUByte(addrs);
+}
+
+uint8_t zeroPageByteWithX(uint8_t addrs) {
+  return readCPUByte(addrs + cpu.rb.x);
+}
+
+uint8_t absoluteByte(uint16_t addrs) {
+  return readCPUByte(addrs);
+}
+
+uint8_t absoluteByteWithX(uint16_t addrs) {
+  return readCPUByte(addrs + cpu.rb.x);
+}
+
+uint8_t absoluteByteWithY(uint16_t addrs) {
+  return readCPUByte(addrs + cpu.rb.y);
+}
+
+uint8_t indirectByteWithX(uint8_t addrs) {
+  uint8_t lobyte = readCPUByte(addrs + cpu.rb.x);
+  uint8_t hibyte = readCPUByte(addrs + cpu.rb.x + 1);
+  uint16_t indirectAddrs = (hibyte << 8) | lobyte;
+
+  return readCPUByte(indirectAddrs);
+}
+
+uint8_t indirectByteWithY(uint8_t addrs) {
+  uint8_t lobyte = readCPUByte(addrs);
+  uint8_t hibyte = readCPUByte(addrs + 1);
+  uint16_t indirectAddrs = ((hibyte << 8) | lobyte) + cpu.rb.y;
+
+  return readCPUByte(indirectAddrs);
+}
