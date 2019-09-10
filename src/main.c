@@ -15,6 +15,15 @@
 #define CPU_RAM 0x800 //should look up the correct size
 #define CARTRIDGE_SIZE 30 * (1 << 20) // 30MB
 
+#define BIT0 0b1
+#define BIT1 0b10
+#define BIT2 0b100
+#define BIT3 0b1000
+#define BIT4 0b10000
+#define BIT5 0b100000
+#define BIT6 0b1000000
+#define BIT7 0b10000000
+
 void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p);
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
 
