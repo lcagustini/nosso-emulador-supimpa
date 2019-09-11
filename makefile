@@ -1,6 +1,6 @@
 CC=gcc
 CXX=g++
-CFLAGS=-O3
+CFLAGS=-Ofast -march=native
 
 TST=./tst
 RES=./res
