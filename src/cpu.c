@@ -318,7 +318,7 @@ void doInstruction(uint8_t opcode) {
     case 0xCC: // cpy abs
       {
         uint8_t mem = readCPUByte(getInstructionAddrs());
-        uint8_t sub = cpy.rb.y - mem;
+        uint8_t sub = cpu.rb.y - mem;
 
         UPDATE_Z_FLAG(sub);
         UPDATE_N_FLAG(sub);
@@ -330,7 +330,7 @@ void doInstruction(uint8_t opcode) {
     case 0xCD: // cmp abs
       {
         uint8_t mem = readCPUByte(getInstructionAddrs());
-        uint8_t sub = cpy.rb.a - mem;
+        uint8_t sub = cpu.rb.a - mem;
 
         UPDATE_Z_FLAG(sub);
         UPDATE_N_FLAG(sub);
@@ -356,7 +356,7 @@ void doInstruction(uint8_t opcode) {
     case 0xDD: // cmp abs, x
       {
         uint8_t mem = readCPUByte(getInstructionAddrs() + cpu.rb.x);
-        uint8_t sub = cpy.rb.a - mem;
+        uint8_t sub = cpu.rb.a - mem;
 
         UPDATE_Z_FLAG(sub);
         UPDATE_N_FLAG(sub);
@@ -385,7 +385,7 @@ void doInstruction(uint8_t opcode) {
     case 0xEC: // cpx abs
       {
         uint8_t mem = readCPUByte(getInstructionAddrs());
-        uint8_t sub = cpy.rb.x - mem;
+        uint8_t sub = cpu.rb.x - mem;
 
         UPDATE_Z_FLAG(sub);
         UPDATE_N_FLAG(sub);
@@ -416,7 +416,7 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, mem);
       }
       break;
-    case 0xED: // sbc abs, x
+    case 0xFD: // sbc abs, x
       {
         uint8_t mem = ~readCPUByte(getInstructionAddrs() + cpu.rb.x);
         uint16_t sub = cpu.rb.a + mem + GET_C();
@@ -429,7 +429,7 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
-    case 0xEE: // inc abs, x
+    case 0xFE: // inc abs, x
       {
         uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs) + 1;
@@ -439,7 +439,7 @@ void doInstruction(uint8_t opcode) {
       }
       break;
     default:
-      fprintf(stderr, COLOR_RED "Unimplemented OP Code: 0x%X\n", opcode);
+      fprintf(stderr, COLOR_RED "Unimplemented OP Code: 0x%02X\n", opcode);
       exit(1);
   }
 }
