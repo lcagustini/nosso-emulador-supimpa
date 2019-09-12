@@ -84,7 +84,7 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = readCPUByte(byte + 1);
         addrs <<= 8;
         addrs |= low;
-        addrs += cpu.rb.y + GET_C;
+        addrs += cpu.rb.y + GET_C();
         cpu.rb.a |= readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
@@ -158,7 +158,7 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = readCPUByte(byte + 1);
         addrs <<= 8;
         addrs |= low;
-        addrs += cpu.rb.y + GET_C;
+        addrs += cpu.rb.y + GET_C();
         cpu.rb.a &= readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
@@ -230,7 +230,7 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = readCPUByte(byte + 1);
         addrs <<= 8;
         addrs |= low;
-        addrs += cpu.rb.y + GET_C;
+        addrs += cpu.rb.y + GET_C();
         cpu.rb.a ^= readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
@@ -315,7 +315,7 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = readCPUByte(byte +1);
         addrs <<= 8;
         addrs |= low;
-        addrs += cpu.rb.y + GET_C;
+        addrs += cpu.rb.y + GET_C();
         uint8_t mem = readCPUByte(addrs);
         uint16_t sum = cpu.rb.a + mem + GET_C();
 
