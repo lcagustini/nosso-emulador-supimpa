@@ -39,6 +39,19 @@
 
 void doInstruction(uint8_t opcode) {
   switch (opcode) {
+    case 0x01: // ora x, ind
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte + cpu.rb.x);
+        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        addrs <<= 8;
+        addrs |= low;
+        cpu.rb.a |= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
     case 0x0D: // ora abs
       {
         cpu.rb.a |= readCPUByte(getInstructionAddrs());
@@ -64,6 +77,20 @@ void doInstruction(uint8_t opcode) {
         if (!GET_N()) ADD_SIGNED_TO_UNSIGNED(dest, cpu.rb.pc);
       }
       break;
+    case 0x11: // ora ind, y
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte);
+        uint16_t addrs = readCPUByte(byte + 1);
+        addrs <<= 8;
+        addrs |= low;
+        addrs += cpu.rb.y + GET_C;
+        cpu.rb.a |= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
     case 0x1D: // ora abs, x
       {
         cpu.rb.a |= readCPUByte(getInstructionAddrs() + cpu.rb.x);
@@ -81,6 +108,19 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(mem);
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+      }
+      break;
+    case 0x21: // and x, ind
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte + cpu.rb.x);
+        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        addrs <<= 8;
+        addrs |= low;
+        cpu.rb.a &= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
     case 0x2C: // bit abs
@@ -111,6 +151,20 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, mem);
       }
       break;
+    case 0x31: // and ind, y
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte);
+        uint16_t addrs = readCPUByte(byte + 1);
+        addrs <<= 8;
+        addrs |= low;
+        addrs += cpu.rb.y + GET_C;
+        cpu.rb.a &= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
     case 0x3D: // and abs, x
       {
         cpu.rb.a &= readCPUByte(getInstructionAddrs() + cpu.rb.x);
@@ -130,6 +184,19 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(mem);
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+      }
+      break;
+    case 0x41: // eor x, ind
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte + cpu.rb.x);
+        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        addrs <<= 8;
+        addrs |= low;
+        cpu.rb.a ^= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);   
       }
       break;
     case 0x4C: // jmp abs
@@ -156,6 +223,20 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, mem);
       }
       break;
+    case 0x51: // eor ind, y
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte);
+        uint16_t addrs = readCPUByte(byte + 1);
+        addrs <<= 8;
+        addrs |= low;
+        addrs += cpu.rb.y + GET_C;
+        cpu.rb.a ^= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);   
+      }
+      break;
     case 0x5D: // eor abs, x
       {
         cpu.rb.a ^= readCPUByte(getInstructionAddrs() + cpu.rb.x);
@@ -173,6 +254,25 @@ void doInstruction(uint8_t opcode) {
         CLEAR_N();
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+      }
+      break;
+    case 0x61: // adc x, ind
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte + cpu.rb.x);
+        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        addrs <<= 8;
+        addrs |= low;
+        uint8_t mem = readCPUByte(addrs);
+        uint16_t sum = cpu.rb.a + mem + GET_C();
+
+        if (~(cpu.rb.a ^ mem) & (cpu.rb.a ^ sum) & 0x80) SET_V();
+        else CLEAR_V();
+        if (sum & 0b100000000) SET_C();
+        else CLEAR_C();
+        cpu.rb.a = sum;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
     case 0x6C: // jmp (abs)
@@ -208,6 +308,26 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, mem);
       }
       break;
+    case 0x71: // adc ind, y
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte);
+        uint16_t addrs = readCPUByte(byte +1);
+        addrs <<= 8;
+        addrs |= low;
+        addrs += cpu.rb.y + GET_C;
+        uint8_t mem = readCPUByte(addrs);
+        uint16_t sum = cpu.rb.a + mem + GET_C();
+
+        if (~(cpu.rb.a ^ mem) & (cpu.rb.a ^ sum) & 0x80) SET_V();
+        else CLEAR_V();
+        if (sum & 0b100000000) SET_C();
+        else CLEAR_C();
+        cpu.rb.a = sum;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
     case 0x78: // sei
       {
         SET_I();
@@ -240,6 +360,16 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, mem);
       }
       break;
+    case 0x81: // sta x, ind
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte + cpu.rb.x);
+        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        addrs <<= 8;
+        addrs |= low;
+        writeCPUByte(addrs, cpu.rb.a);
+      }
+      break;
     case 0x8C: // sty abs
       {
         writeCPUByte(getInstructionAddrs(), cpu.rb.y);
@@ -255,6 +385,17 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(getInstructionAddrs(), cpu.rb.x);
       }
       break;
+    case 0x91: // sta ind, y
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte);
+        uint16_t addrs = readCPUByte(byte + 1);
+        addrs <<= 8;
+        addrs |= low;
+        addrs += cpu.rb.y + GET_C();
+        writeCPUByte(addrs, cpu.rb.a);
+      }
+      break;
     case 0x9A: // txs
       {
         cpu.rb.sp = cpu.rb.x;
@@ -263,6 +404,26 @@ void doInstruction(uint8_t opcode) {
     case 0x9D: // sta abs, x
       {
         writeCPUByte(getInstructionAddrs() + cpu.rb.x, cpu.rb.a);
+      }
+      break;
+    case 0xA0: // ldy #imm
+      {
+        cpu.rb.y = getInstructionByte();
+        UPDATE_N_FLAG(cpu.rb.x);
+        UPDATE_Z_FLAG(cpu.rb.x);
+      }
+      break;
+    case 0xA1: // lda x, ind
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte + cpu.rb.x);
+        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        addrs <<= 8;
+        addrs |= low;
+        cpu.rb.a = getInstructionByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a); 
+        UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
     case 0xA2: // ldx #imm
@@ -294,6 +455,20 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.x);
       }
       break;
+    case 0xB1: // lda ind, y
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte);
+        uint16_t addrs = readCPUByte(byte + 1);
+        addrs <<= 8;
+        addrs |= low;
+        addrs += cpu.rb.y + GET_C();
+        cpu.rb.a = getInstructionByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a); 
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
     case 0xBC: // ldy abs, x
       {
         cpu.rb.y = readCPUByte(getInstructionAddrs() + cpu.rb.x);
@@ -313,6 +488,22 @@ void doInstruction(uint8_t opcode) {
         cpu.rb.x = readCPUByte(getInstructionAddrs() + cpu.rb.y);
         UPDATE_N_FLAG(cpu.rb.x);
         UPDATE_Z_FLAG(cpu.rb.x);
+      }
+      break;
+    case 0xC1: // cmp x, ind
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte + cpu.rb.x);
+        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        addrs <<= 8;
+        addrs |= low;
+        uint8_t mem = readCPUByte(addrs);
+        uint8_t sub = cpu.rb.a - mem;
+
+        UPDATE_N_FLAG(sub);
+        UPDATE_Z_FLAG(sub);
+        if (cpu.rb.a >= mem) SET_C();
+        else CLEAR_C();
       }
       break;
     case 0xCC: // cpy abs
@@ -348,6 +539,24 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, mem);
       }
       break;
+    case 0xD1: // cmp ind, y
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte);
+        uint16_t addrs = readCPUByte(byte + 1);
+        addrs <<= 8;
+        addrs |= low;
+        addrs += cpu.rb.y + GET_C();
+        uint8_t mem = readCPUByte(addrs);
+        uint8_t sub = cpu.rb.a - mem;
+        
+        UPDATE_N_FLAG(sub);
+        UPDATE_Z_FLAG(sub);
+
+        if (cpu.rb.a >= mem) SET_C();
+        else CLEAR_C();
+      }
+      break;
     case 0xD8: // cld
       {
         CLEAR_D();
@@ -372,6 +581,25 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(mem);
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+      }
+      break;
+    case 0xE1: // sbc x, ind
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte + cpu.rb.x);
+        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        addrs <<= 8;
+        addrs |= low;
+        uint8_t mem = ~readCPUByte(addrs);
+        uint16_t sub = cpu.rb.a + mem + GET_C();
+        
+        if (~(cpu.rb.a ^ mem) & (cpu.rb.a ^ sub) & 0x80) SET_V();
+        else CLEAR_V();
+        if (sub & 0b100000000) SET_C();
+        else CLEAR_C();
+        cpu.rb.a = sub;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
     case 0xE8: // inx
@@ -416,6 +644,26 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, mem);
       }
       break;
+    case 0xF1: // sbc ind, y
+      {
+        uint8_t byte = getInstructionByte();
+        uint8_t low = readCPUByte(byte);
+        uint16_t addrs = readCPUByte(byte + 1);
+        addrs <<= 8;
+        addrs |= low;
+        addrs += cpu.rb.y + GET_C();
+        uint8_t mem = ~readCPUByte(addrs);
+        uint16_t sub = cpu.rb.a + mem + GET_C();
+
+        if (~(cpu.rb.a ^ mem) & (cpu.rb.a ^ sub) & 0x80) SET_V();
+        else CLEAR_V();
+        if (sub & 0b100000000) SET_C();
+        else CLEAR_C();
+        cpu.rb.a = sub;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
     case 0xFD: // sbc abs, x
       {
         uint8_t mem = ~readCPUByte(getInstructionAddrs() + cpu.rb.x);
@@ -440,6 +688,6 @@ void doInstruction(uint8_t opcode) {
       break;
     default:
       fprintf(stderr, COLOR_RED "Unimplemented OP Code: 0x%02X\n", opcode);
-      exit(1);
+      exit(1); 
   }
 }
