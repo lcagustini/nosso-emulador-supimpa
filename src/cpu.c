@@ -165,6 +165,11 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
+    case 0x38: //sec impl
+      {
+        SET_C();
+      }
+      break;
     case 0x3D: // and abs, x
       {
         cpu.rb.a &= readCPUByte(getInstructionAddrs() + cpu.rb.x);
@@ -196,7 +201,7 @@ void doInstruction(uint8_t opcode) {
         cpu.rb.a ^= readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
-        UPDATE_Z_FLAG(cpu.rb.a);   
+        UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
     case 0x4C: // jmp abs
@@ -234,7 +239,12 @@ void doInstruction(uint8_t opcode) {
         cpu.rb.a ^= readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
-        UPDATE_Z_FLAG(cpu.rb.a);   
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
+    case 0x58: //cli impl
+      {
+        CLEAR_I();
       }
       break;
     case 0x5D: // eor abs, x
@@ -328,11 +338,12 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
-    case 0x78: // sei
+    case 0x78: // sei impl
       {
         SET_I();
       }
       break;
+
     case 0x7D: // adc abs, x
       {
         uint8_t mem = readCPUByte(getInstructionAddrs() + cpu.rb.x);
@@ -370,6 +381,20 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, cpu.rb.a);
       }
       break;
+    case 0x88: //dey impl
+      {
+        cpu.rb.y = cpu.rb.y - 1;
+        UPDATE_N_FLAG(cpu.rb.y);
+        UPDATE_Z_FLAG(cpu.rb.y);
+      }
+      break;
+    case 0x8A: // txa impl
+      {
+        cpu.rb.a = cpu.rb.x;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
     case 0x8C: // sty abs
       {
         writeCPUByte(getInstructionAddrs(), cpu.rb.y);
@@ -396,7 +421,14 @@ void doInstruction(uint8_t opcode) {
         writeCPUByte(addrs, cpu.rb.a);
       }
       break;
-    case 0x9A: // txs
+    case 0x98: // tya impl
+      {
+        cpu.rb.a = cpu.rb.y;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
+    case 0x9A: // txs implt
       {
         cpu.rb.sp = cpu.rb.x;
       }
@@ -422,7 +454,7 @@ void doInstruction(uint8_t opcode) {
         addrs |= low;
         cpu.rb.a = getInstructionByte(addrs);
 
-        UPDATE_N_FLAG(cpu.rb.a); 
+        UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
@@ -432,6 +464,20 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_Z_FLAG(cpu.rb.x);
         UPDATE_N_FLAG(cpu.rb.x);
+      }
+      break;
+    case 0xA8: //tay impl
+      {
+        cpu.rb.y = cpu.rb.a;
+        UPDATE_N_FLAG(cpu.rb.y);
+        UPDATE_Z_FLAG(cpu.rb.y);
+      }
+      break;
+    case 0xAA: //tax impl
+      {
+        cpu.rb.x = cpu.rb.a;
+        UPDATE_N_FLAG(cpu.rb.x);
+        UPDATE_Z_FLAG(cpu.rb.x);
       }
       break;
     case 0xAC: // ldy abs
@@ -465,8 +511,20 @@ void doInstruction(uint8_t opcode) {
         addrs += cpu.rb.y + GET_C();
         cpu.rb.a = getInstructionByte(addrs);
 
-        UPDATE_N_FLAG(cpu.rb.a); 
+        UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
+    case 0xB8: //clv impl
+      {
+        CLEAR_V();
+      }
+      break;
+    case 0xBA: //tsx impl
+      {
+        cpu.rb.x = cpu.rb.sp;
+        UPDATE_N_FLAG(cpu.rb.x);
+        UPDATE_Z_FLAG(cpu.rb.x);
       }
       break;
     case 0xBC: // ldy abs, x
@@ -504,6 +562,20 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(sub);
         if (cpu.rb.a >= mem) SET_C();
         else CLEAR_C();
+      }
+      break;
+    case 0xC8: //iny impl
+      {
+        cpu.rb.y = cpu.rb.y + 1;
+        UPDATE_N_FLAG(cpu.rb.y);
+        UPDATE_Z_FLAG(cpu.rb.y);
+      }
+      break;
+    case 0xCA: //dex impl
+      {
+        cpu.rb.x = cpu.rb.x - 1;
+        UPDATE_N_FLAG(cpu.rb.x);
+        UPDATE_Z_FLAG(cpu.rb.x);
       }
       break;
     case 0xCC: // cpy abs
@@ -549,7 +621,7 @@ void doInstruction(uint8_t opcode) {
         addrs += cpu.rb.y + GET_C();
         uint8_t mem = readCPUByte(addrs);
         uint8_t sub = cpu.rb.a - mem;
-        
+
         UPDATE_N_FLAG(sub);
         UPDATE_Z_FLAG(sub);
 
@@ -557,7 +629,7 @@ void doInstruction(uint8_t opcode) {
         else CLEAR_C();
       }
       break;
-    case 0xD8: // cld
+    case 0xD8: // cld impl
       {
         CLEAR_D();
       }
@@ -592,7 +664,7 @@ void doInstruction(uint8_t opcode) {
         addrs |= low;
         uint8_t mem = ~readCPUByte(addrs);
         uint16_t sub = cpu.rb.a + mem + GET_C();
-        
+
         if (~(cpu.rb.a ^ mem) & (cpu.rb.a ^ sub) & 0x80) SET_V();
         else CLEAR_V();
         if (sub & 0b100000000) SET_C();
@@ -602,12 +674,18 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
-    case 0xE8: // inx
+    case 0xE8: // inx impl
       {
         cpu.rb.x++;
 
         UPDATE_Z_FLAG(cpu.rb.x);
         UPDATE_N_FLAG(cpu.rb.x);
+      }
+      break;
+
+    case 0xEA: //nop impl
+      {
+
       }
       break;
     case 0xEC: // cpx abs
@@ -664,6 +742,11 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
+    case 0xF8: //sed impl
+      {
+        SET_D();
+      }
+      break;
     case 0xFD: // sbc abs, x
       {
         uint8_t mem = ~readCPUByte(getInstructionAddrs() + cpu.rb.x);
@@ -688,6 +771,6 @@ void doInstruction(uint8_t opcode) {
       break;
     default:
       fprintf(stderr, COLOR_RED "Unimplemented OP Code: 0x%02X\n", opcode);
-      exit(1); 
+      exit(1);
   }
 }
