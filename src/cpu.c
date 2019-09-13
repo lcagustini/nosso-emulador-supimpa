@@ -61,7 +61,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x08: //php impl
       {
-#ifdef
+#ifdef DEBUG_PRINT
         printf("php impl\n");
 #endif
         uint16_t addrs = 0x0100 | cpu.rb.sp;
@@ -190,7 +190,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x28: //plp impl
       {
-#ifdef
+#ifdef DEBUG_PRINT
         printf("plp impl\n");
 #endif
         cpu.rb.sp++;
@@ -328,7 +328,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x48: //pha impl
       {
-#ifdef
+#ifdef DEBUG_PRINT
         printf("pha impl\n");
 #endif
         uint16_t addrs = 0x0100 | cpu.rb.sp;
@@ -464,19 +464,19 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x68: //pla impl
       {
-#ifdef
+#ifdef DEBUG_PRINT
         printf("pla impl\n");
 #endif
         cpu.rb.sp++;
         uint16_t addrs = 0x0100 | cpu.rb.sp;
         cpu.rb.a = readCPUByte(addrs);
-        UPDATE_N_FLAG(pu.rb.a);
-        UPDATE_Z_FLAG(pu.rb.a);
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
     case 0x6A: // ror a
       {
-#ifdef
+#ifdef DEBUG_PRINT
         printf("ror a\n");
 #endif
         uint8_t carry = (cpu.rb.a & BIT0);
@@ -730,7 +730,7 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
         addrs <<= 8;
         addrs |= low;
-        cpu.rb.a = getInstructionByte(addrs);
+        cpu.rb.a = readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
@@ -815,7 +815,7 @@ void doInstruction(uint8_t opcode) {
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y + GET_C();
-        cpu.rb.a = getInstructionByte(addrs);
+        cpu.rb.a = readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
