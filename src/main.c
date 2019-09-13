@@ -24,6 +24,8 @@
 #define BIT6 0b1000000
 #define BIT7 0b10000000
 
+#define DEBUG_PRINT
+
 void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p);
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
 
@@ -72,10 +74,12 @@ int main(int argc, char* argv[]) {
     uint8_t opcode = getInstructionByte();
 
     doInstruction(opcode);
-  }
 
-  print(0xFF, 0xEE, 0xDD, 0xCCCC, 0xBBBB, 0xAA);
-  printls(0xFF, 0xEE, 0xDD, 0xCCCC, 0xBBBB, 0xAA, 0xFFFF, 0x99);
+#ifndef DEBUG_PRINT
+    print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+    printls(0xFF, 0xEE, 0xDD, 0xCCCC, 0xBBBB, 0xAA, 0xFFFF, 0x99); // ???
+#endif
+  }
 
   return 0;
 }
