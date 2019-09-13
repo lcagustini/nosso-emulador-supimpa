@@ -59,6 +59,28 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
+    case 0x08: //php impl
+      {
+#ifdef
+        printf("php impl\n");
+#endif
+        uint16_t addrs = 0x0100 | cpu.rb.sp;
+        writeCPUByte(addrs, cpu.rb.p);
+        cpu.rb.sp--;
+      }
+      break;
+    case 0x0A: // asl a
+      {
+#ifdef DEBUG_PRINT
+        printf("asl a\n");
+#endif
+        if (cpu.rb.a & BIT7) SET_C();
+        else CLEAR_C();
+        cpu.rb.a <<= 1;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
     case 0x0D: // ora abs
       {
 #ifdef DEBUG_PRINT
@@ -114,6 +136,14 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
+    case 0x18: //clc impl
+      {
+#ifdef DEBUG_PRINT
+        printf("clc impl\n");
+#endif
+        CLEAR_C();
+      }
+      break;
     case 0x1D: // ora abs, x
       {
 #ifdef DEBUG_PRINT
@@ -154,6 +184,31 @@ void doInstruction(uint8_t opcode) {
         addrs |= low;
         cpu.rb.a &= readCPUByte(addrs);
 
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
+    case 0x28: //plp impl
+      {
+#ifdef
+        printf("plp impl\n");
+#endif
+        cpu.rb.sp++;
+        uint16_t addrs = 0x0100 | cpu.rb.sp;
+        cpu.rb.p = readCPUByte(addrs);
+      }
+      break;
+    case 0x2A: // rol a
+      {
+#ifdef DEBUG_PRINT
+        printf("rol a\n");
+#endif
+
+        uint8_t carry = cpu.rb.a & BIT7;
+        cpu.rb.a <<= 1;
+        cpu.rb.a |= GET_C();
+        if (carry) SET_C();
+        else CLEAR_C();
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
       }
@@ -271,6 +326,16 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
+    case 0x48: //pha impl
+      {
+#ifdef
+        printf("pha impl\n");
+#endif
+        uint16_t addrs = 0x0100 | cpu.rb.sp;
+        writeCPUByte(addrs, cpu.rb.a);
+        cpu.rb.sp--;
+      }
+      break;
     case 0x4C: // jmp abs
       {
 #ifdef DEBUG_PRINT
@@ -278,6 +343,19 @@ void doInstruction(uint8_t opcode) {
 #endif
 
         cpu.rb.pc = getInstructionAddrs();
+      }
+      break;
+    case 0x4A: // lsr a
+      {
+#ifdef DEBUG_PRINT
+        printf("lsr a\n");
+#endif
+
+        if (cpu.rb.a & BIT0) SET_C();
+        else CLEAR_C();
+        cpu.rb.a >>= 1;
+        CLEAR_N();
+        UPDATE_Z_FLAG(cpu.rb.a);
       }
       break;
     case 0x4D: // eor abs
@@ -380,6 +458,32 @@ void doInstruction(uint8_t opcode) {
         if (sum & 0b100000000) SET_C();
         else CLEAR_C();
         cpu.rb.a = sum;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+      }
+      break;
+    case 0x68: //pla impl
+      {
+#ifdef
+        printf("pla impl\n");
+#endif
+        cpu.rb.sp++;
+        uint16_t addrs = 0x0100 | cpu.rb.sp;
+        cpu.rb.a = readCPUByte(addrs);
+        UPDATE_N_FLAG(pu.rb.a);
+        UPDATE_Z_FLAG(pu.rb.a);
+      }
+      break;
+    case 0x6A: // ror a
+      {
+#ifdef
+        printf("ror a\n");
+#endif
+        uint8_t carry = (cpu.rb.a & BIT0);
+        cpu.rb.a >>= 1;
+        cpu.rb.a |= GET_C() << 7;
+        if (carry) SET_C();
+        else CLEAR_C();
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
       }
