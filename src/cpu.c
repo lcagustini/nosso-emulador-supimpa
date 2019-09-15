@@ -68,7 +68,7 @@ void doInstruction(uint8_t opcode) {
     case 0x08: //php impl
       {
         uint16_t addrs = 0x0100 | cpu.rb.sp;
-        writeCPUByte(addrs, cpu.rb.p);
+        writeCPUByte(addrs, cpu.rb.p | BIT5 | BIT4);
         cpu.rb.sp--;
 
 #ifdef DEBUG_PRINT
@@ -210,7 +210,7 @@ void doInstruction(uint8_t opcode) {
       {
         cpu.rb.sp++;
         uint16_t addrs = 0x0100 | cpu.rb.sp;
-        cpu.rb.p = readCPUByte(addrs);
+        cpu.rb.p = readCPUByte(addrs) & (~BIT5) & (~BIT4);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -343,7 +343,7 @@ void doInstruction(uint8_t opcode) {
       {
         cpu.rb.sp++;
         uint16_t addrs = 0x0100 | cpu.rb.sp;
-        cpu.rb.p = readCPUByte(addrs);
+        cpu.rb.p = readCPUByte(addrs) & (~BIT4) & (~BIT5);
 
         cpu.rb.sp++;
         addrs = 0x0100 | cpu.rb.sp;
