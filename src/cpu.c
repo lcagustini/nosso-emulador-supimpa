@@ -39,6 +39,15 @@
 
 void doInstruction(uint8_t opcode) {
   switch (opcode) {
+    case 0x00: // brk
+      {
+        cpu.interrupt.brk = true;
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0x01: // ora x, ind
       {
         uint8_t byte = getInstructionByte();
@@ -327,6 +336,25 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x40: // rti
+      {
+        cpu.rb.sp++;
+        uint16_t addrs = 0x0100 | cpu.rb.sp;
+        cpu.rb.p = readCPUByte(addrs);
+
+        cpu.rb.sp++;
+        addrs = 0x0100 | cpu.rb.sp;
+        cpu.rb.pc = readCPUByte(addrs);
+
+        cpu.rb.sp++;
+        addrs = 0x0100 | cpu.rb.sp;
+        cpu.rb.pc |= readCPUByte(addrs) << 8;
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
       }
       break;

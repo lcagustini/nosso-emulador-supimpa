@@ -29,56 +29,31 @@
 void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p);
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
 
-struct {
-  struct {
-    uint8_t a;
-    uint8_t x;
-    uint8_t y;
-
-    uint8_t p;
-    uint8_t sp;
-
-    uint16_t pc;
-  } rb;
-
-  uint8_t ram[CPU_RAM];
-} cpu;
-
-struct {
-  uint8_t data[CARTRIDGE_SIZE];
-  uint64_t data_size;
-} cartridge;
-
+#include "globals.c"
 #include "memory.c"
 #include "cpu.c"
+#include "interrupt.c"
 
 int main(int argc, char* argv[]) {
   if (argc <= 1) {
     fprintf(stderr, COLOR_RED "Rom file needed!\n");
-    return 1;
+    exit(1);
   }
 
   FILE *rom_file = fopen(argv[1], "rb");
-
   if (!rom_file) {
     fprintf(stderr, COLOR_RED "No file found!\n");
-    return 1;
+    exit(1);
   }
-
   cartridge.data_size = fread(cartridge.data, 1, sizeof(cartridge.data), rom_file);
   fclose(rom_file);
 
-  cpu.rb.pc = readCPUByte(0xFFFC) | readCPUByte(0xFFFD) << 8;
-
+reset:
+  cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
   while (true) {
     uint8_t opcode = getInstructionByte();
-
     doInstruction(opcode);
-
-#ifndef DEBUG_PRINT
-    print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
-    printls(0xFF, 0xEE, 0xDD, 0xCCCC, 0xBBBB, 0xAA, 0xFFFF, 0x99); // ???
-#endif
+    checkForInterrupts();
   }
 
   return 0;
