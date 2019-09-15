@@ -57,3 +57,4 @@ bin/
 *.nes.deb
 img_to_chr/*.png
 img_to_chr/*.chr
+log/

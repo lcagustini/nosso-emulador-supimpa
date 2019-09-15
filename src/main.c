@@ -12,8 +12,7 @@
 #define COLOR_YELLOW "\033[01;33m"
 #define COLOR_RESET "\033[0m"
 
-#define CPU_RAM 0x800 //should look up the correct size
-#define CARTRIDGE_SIZE 30 * (1 << 20) // 30MB
+#define CPU_RAM 0x800
 
 #define BIT0 0b1
 #define BIT1 0b10
@@ -34,19 +33,50 @@ void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t 
 #include "cpu.c"
 #include "interrupt.c"
 
+void loadNESFile(char *filepath) {
+  uint8_t null_buffer[512];
+
+  FILE *rom_file = fopen(filepath, "rb");
+  if (!rom_file) {
+    fprintf(stderr, COLOR_RED "No file found!\n");
+    exit(1);
+  }
+
+  fread(null_buffer, 1, 4, rom_file);
+
+  fread(&cartridge.PRG_size, 1, 1, rom_file);
+  cartridge.PRG_size *= 0x4000;
+
+  fread(&cartridge.CHR_size, 1, 1, rom_file);
+  cartridge.CHR_size *= 0x2000;
+
+  fread(&cartridge.control1, 1, 1, rom_file);
+  fread(&cartridge.control2, 1, 1, rom_file);
+
+  fread(null_buffer, 1, 8, rom_file);
+
+  cartridge.mapper = (cartridge.control1 >> 4) | ((cartridge.control2 >> 4) << 4);
+  cartridge.mirror = (cartridge.control1 & 1) | (((cartridge.control1 >> 3) & 1) << 1);
+  cartridge.battery = (cartridge.control1 >> 1) & 1;
+
+  if (cartridge.control1 & 4) {
+    fread(null_buffer, 1, 512, rom_file);
+  }
+
+  cartridge.PRG = malloc(cartridge.PRG_size);
+  fread(cartridge.PRG, 1, cartridge.PRG_size, rom_file);
+
+  cartridge.CHR = malloc(cartridge.CHR_size);
+  fread(cartridge.CHR, 1, cartridge.CHR_size, rom_file);
+}
+
 int main(int argc, char* argv[]) {
   if (argc <= 1) {
     fprintf(stderr, COLOR_RED "Rom file needed!\n");
     exit(1);
   }
 
-  FILE *rom_file = fopen(argv[1], "rb");
-  if (!rom_file) {
-    fprintf(stderr, COLOR_RED "No file found!\n");
-    exit(1);
-  }
-  cartridge.data_size = fread(cartridge.data, 1, sizeof(cartridge.data), rom_file);
-  fclose(rom_file);
+  loadNESFile(argv[1]);
 
 reset:
   cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
@@ -55,6 +85,9 @@ reset:
     doInstruction(opcode);
     checkForInterrupts();
   }
+
+  free(cartridge.PRG);
+  free(cartridge.CHR);
 
   return 0;
 }

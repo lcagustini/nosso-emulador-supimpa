@@ -1,6 +1,6 @@
 uint8_t readCPUByte(uint16_t addrs) {
   if (addrs < 0x800) return cpu.ram[addrs];
-  if (addrs >= 0x8000) return cartridge.data[addrs-0x7FF0];
+  if (addrs >= 0x4020) return cartridge.PRG[addrs-(0x10000-cartridge.PRG_size)];
   return 0;
 }
 
