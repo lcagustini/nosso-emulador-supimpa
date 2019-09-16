@@ -746,6 +746,7 @@ void doInstruction(uint8_t opcode) {
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
       }
+      break;
     case 0x5D: // eor abs, x
       {
         uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
@@ -803,7 +804,7 @@ void doInstruction(uint8_t opcode) {
       {
         uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
         uint8_t tmp = readCPUByte(addrs);
-        
+
         uint8_t carry = (tmp & BIT0);
         tmp >>= 1;
         tmp |= GET_C() << 7;
@@ -948,7 +949,7 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
         addrs += cpu.rb.x;
         uint8_t tmp = readCPUByte(addrs);
-        
+
         uint8_t carry = (tmp & BIT0);
         tmp >>= 1;
         tmp |= GET_C() << 7;
