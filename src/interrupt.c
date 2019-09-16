@@ -9,7 +9,7 @@ void checkForInterrupts() {
     cpu.rb.sp--;
 
     addrs = 0x0100 | cpu.rb.sp;
-    writeCPUByte(addrs, cpu.rb.p | BIT5 & (~BIT4));
+    writeCPUByte(addrs, (cpu.rb.p | BIT5) & (~BIT4));
     cpu.rb.sp--;
 
     cpu.rb.pc = readCPUByte(0xFFFE) | (readCPUByte(0xFFFF) << 8);
@@ -27,7 +27,7 @@ void checkForInterrupts() {
     cpu.rb.sp--;
 
     addrs = 0x0100 | cpu.rb.sp;
-    writeCPUByte(addrs, cpu.rb.p | BIT5 & (~BIT4));
+    writeCPUByte(addrs, (cpu.rb.p | BIT5) & (~BIT4));
     cpu.rb.sp--;
 
     cpu.rb.pc = readCPUByte(0xFFFA) | (readCPUByte(0xFFFB) << 8);

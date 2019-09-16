@@ -172,9 +172,23 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x19: // ora abs, y
+      {
+
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
+        cpu.rb.a |= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x1D: // ora abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         cpu.rb.a |= readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
@@ -187,7 +201,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x1E: // asl abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs);
         if (mem & BIT7) SET_C();
         else CLEAR_C();
@@ -333,9 +347,22 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x39: // and abs, y
+      {
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
+        cpu.rb.a &= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x3D: // and abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         cpu.rb.a &= readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
@@ -348,7 +375,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x3E: // rol abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs);
         uint8_t carry = mem & BIT7;
         mem <<= 1;
@@ -505,9 +532,21 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x59: // eor abs, y
+      {
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
+        cpu.rb.a ^= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
     case 0x5D: // eor abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         cpu.rb.a ^= readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
@@ -520,7 +559,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x5E: // lsr abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs);
         if (mem & BIT0) SET_C();
         else CLEAR_C();
@@ -689,9 +728,30 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x79: // adc abs, y
+      {
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
+        uint8_t mem = readCPUByte(addrs);
+        uint16_t sum = cpu.rb.a + mem + GET_C();
+
+        if(~(cpu.rb.a ^ mem) & (cpu.rb.a ^ sum) & 0x80) SET_V();
+        else CLEAR_V();
+        if (sum & 0b100000000) SET_C();
+        else CLEAR_C();
+
+        cpu.rb.a = sum;
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x7D: // adc abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs);
         uint16_t sum = cpu.rb.a + mem + GET_C();
         if (~(cpu.rb.a ^ mem) & (cpu.rb.a ^ sum) & 0x80) SET_V();
@@ -710,7 +770,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x7E: // ror abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs);
         uint8_t carry = mem & BIT0;
         mem >>= 1;
@@ -823,6 +883,16 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x99: // sta abs, y
+      {
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
+        writeCPUByte(addrs, cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x9A: // txs
       {
         cpu.rb.sp = cpu.rb.x;
@@ -834,7 +904,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0x9D: // sta abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         writeCPUByte(addrs, cpu.rb.a);
 
 #ifdef DEBUG_PRINT
@@ -986,6 +1056,19 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xB9: // lda abs, y
+      {
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
+        cpu.rb.a = readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0xBA: //tsx
       {
         cpu.rb.x = cpu.rb.sp;
@@ -1000,7 +1083,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0xBC: // ldy abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         cpu.rb.y = readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.y);
@@ -1013,7 +1096,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0xBD: // lda abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         cpu.rb.a = readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.a);
@@ -1026,7 +1109,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0xBE: // ldx abs, y
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.y + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
         cpu.rb.x = readCPUByte(addrs);
 
         UPDATE_N_FLAG(cpu.rb.x);
@@ -1176,9 +1259,26 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xD9: // cmp abs, y
+      {
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
+        uint8_t mem = readCPUByte(addrs);
+        uint8_t sub = cpu.rb.a - mem;
+
+        UPDATE_N_FLAG(sub);
+        UPDATE_Z_FLAG(sub);
+
+        if(cpu.rb.a >= mem) SET_C();
+        else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0xDD: // cmp abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs);
         uint8_t sub = cpu.rb.a - mem;
 
@@ -1195,7 +1295,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0xDE: // dec abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs) - 1;
 
         UPDATE_N_FLAG(mem);
@@ -1351,9 +1451,28 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xF9: //sbc abs, y
+      {
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
+        uint8_t mem = ~readCPUByte(addrs);
+        uint16_t sub = cpu.rb.a + mem + GET_C();
+
+        if (~(cpu.rb.a ^ mem) & (cpu.rb.a ^ sub) & 0x80) SET_V();
+        else CLEAR_V();
+        if (sub & 0b100000000) SET_C();
+        else CLEAR_C();
+        cpu.rb.a = sub;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0xFD: // sbc abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = ~readCPUByte(addrs);
         uint16_t sub = cpu.rb.a + mem + GET_C();
 
@@ -1372,7 +1491,7 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0xFE: // inc abs, x
       {
-        uint16_t addrs = getInstructionAddrs() + cpu.rb.x + GET_C();
+        uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         uint8_t mem = readCPUByte(addrs) + 1;
 
         UPDATE_N_FLAG(mem);
