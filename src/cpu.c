@@ -298,6 +298,19 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x24: // bit zpg
+      {
+        uint16_t addrs = getInstructionByte();
+        uint8_t mem = readCPUByte(addrs);
+        cpu.rb.p = (cpu.rb.p & ~(BIT7|BIT6)) | (mem & (BIT7|BIT6));
+
+        UPDATE_Z_FLAG(cpu.rb.a & mem);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x25: // and zpg
       {
         uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
