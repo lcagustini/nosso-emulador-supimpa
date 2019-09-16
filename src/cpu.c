@@ -65,6 +65,37 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x05: // ora zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        cpu.rb.a |= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x06: // asl zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t tmp = readCPUByte(addrs);
+        if (tmp & BIT7) SET_C();
+        else CLEAR_C();
+        tmp <<= 1;
+
+        UPDATE_N_FLAG(tmp);
+        UPDATE_Z_FLAG(tmp);
+
+        writeCPUByte(addrs, tmp);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x08: //php impl
       {
         uint16_t addrs = 0x0100 | cpu.rb.sp;
@@ -163,6 +194,39 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x15: // ora zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        cpu.rb.a |= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x16: // asl zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        uint8_t tmp = readCPUByte(addrs);
+        if (tmp & BIT7) SET_C();
+        else CLEAR_C();
+        tmp <<= 1;
+
+        UPDATE_N_FLAG(tmp);
+        UPDATE_Z_FLAG(tmp);
+
+        writeCPUByte(addrs, tmp);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x18: //clc impl
       {
         CLEAR_C();
@@ -228,6 +292,41 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x25: // and zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        cpu.rb.a &= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x26: // rol zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t tmp = readCPUByte(addrs);
+
+        uint8_t carry = tmp & BIT7;
+        tmp <<= 1;
+        tmp |= GET_C();
+
+        if (carry) SET_C();
+        else CLEAR_C();
+
+        UPDATE_N_FLAG(tmp);
+        UPDATE_Z_FLAG(tmp);
+
+        writeCPUByte(addrs, tmp);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -338,6 +437,43 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x35: // and zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        cpu.rb.a &= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x36: // rol zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        uint8_t tmp = readCPUByte(addrs);
+
+        uint8_t carry = tmp & BIT7;
+        tmp <<= 1;
+        tmp |= GET_C();
+
+        if (carry) SET_C();
+        else CLEAR_C();
+
+        UPDATE_N_FLAG(tmp);
+        UPDATE_Z_FLAG(tmp);
+
+        writeCPUByte(addrs, tmp);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x38: //sec
       {
         SET_C();
@@ -423,6 +559,38 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x45: // eor zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        cpu.rb.a ^= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x46: // lsr zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t tmp = readCPUByte(addrs);
+
+        if (tmp & BIT0) SET_C();
+        else CLEAR_C();
+        tmp >>= 1;
+
+        CLEAR_N();
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+        writeCPUByte(addrs, tmp);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -523,6 +691,40 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x55: // eor zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        cpu.rb.a ^= readCPUByte(addrs);
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x56: // lsr zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        uint8_t tmp = readCPUByte(addrs);
+
+        if (tmp & BIT0) SET_C();
+        else CLEAR_C();
+        tmp >>= 1;
+
+        CLEAR_N();
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+        writeCPUByte(addrs, tmp);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x58: //cli
       {
         CLEAR_I();
@@ -591,6 +793,28 @@ void doInstruction(uint8_t opcode) {
         cpu.rb.a = sum;
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x66: // ror zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t tmp = readCPUByte(addrs);
+        
+        uint8_t carry = (tmp & BIT0);
+        tmp >>= 1;
+        tmp |= GET_C() << 7;
+
+        if (carry) SET_C();
+        else CLEAR_C();
+
+        UPDATE_N_FLAG(tmp);
+        UPDATE_Z_FLAG(tmp);
+
+        writeCPUByte(addrs, tmp);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -719,6 +943,29 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x76: // ror zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        uint8_t tmp = readCPUByte(addrs);
+        
+        uint8_t carry = (tmp & BIT0);
+        tmp >>= 1;
+        tmp |= GET_C() << 7;
+
+        if (carry) SET_C();
+        else CLEAR_C();
+
+        UPDATE_N_FLAG(tmp);
+        UPDATE_Z_FLAG(tmp);
+
+        writeCPUByte(addrs, tmp);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x78: // sei
       {
         SET_I();
@@ -802,6 +1049,36 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x84: // sty zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        writeCPUByte(addrs, cpu.rb.y);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x85: // sta zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        writeCPUByte(addrs, cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x86: // stx zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        writeCPUByte(addrs, cpu.rb.x);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0x88: //dey
       {
         cpu.rb.y = cpu.rb.y - 1;
@@ -814,6 +1091,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+
     case 0x8A: // txa
       {
         cpu.rb.a = cpu.rb.x;
@@ -865,6 +1143,39 @@ void doInstruction(uint8_t opcode) {
         addrs |= low;
         addrs += cpu.rb.y + GET_C();
         writeCPUByte(addrs, cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x94: // sty zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        writeCPUByte(addrs, cpu.rb.y);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x95: // sta zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        writeCPUByte(addrs, cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x96: // stx zpg, y
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.y;
+        writeCPUByte(addrs, cpu.rb.x);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -950,6 +1261,45 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
+    case 0xA4: // ldy zpg
+      {
+        uint8_t addrs = getInstructionByte();
+        cpu.rb.y = readCPUByte(addrs);
+
+        UPDATE_Z_FLAG(cpu.rb.y);
+        UPDATE_N_FLAG(cpu.rb.y);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xA5: // lda zpg
+      {
+        uint8_t addrs = getInstructionByte();
+        cpu.rb.a = readCPUByte(addrs);
+
+        UPDATE_Z_FLAG(cpu.rb.a);
+        UPDATE_N_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xA6: // ldx zpg
+      {
+        uint8_t addrs = getInstructionByte();
+        cpu.rb.x = readCPUByte(addrs);
+
+        UPDATE_Z_FLAG(cpu.rb.x);
+        UPDATE_N_FLAG(cpu.rb.x);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
       }
       break;
@@ -1047,6 +1397,48 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xB4: // ldy zpg, x
+      {
+        uint8_t addrs = getInstructionByte();
+        addrs += cpu.rb.x;
+        cpu.rb.y = readCPUByte(addrs);
+
+        UPDATE_Z_FLAG(cpu.rb.y);
+        UPDATE_N_FLAG(cpu.rb.y);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xB5: // lda zpg, x
+      {
+        uint8_t addrs = getInstructionByte();
+        addrs += cpu.rb.x;
+        cpu.rb.a = readCPUByte(addrs);
+
+        UPDATE_Z_FLAG(cpu.rb.a);
+        UPDATE_N_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xB6: // ldx zpg, y
+      {
+        uint8_t addrs = getInstructionByte();
+        addrs += cpu.rb.y;
+        cpu.rb.x = readCPUByte(addrs);
+
+        UPDATE_Z_FLAG(cpu.rb.x);
+        UPDATE_N_FLAG(cpu.rb.x);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0xB8: //clv
       {
         CLEAR_V();
@@ -1134,6 +1526,55 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(sub);
         if (cpu.rb.a >= mem) SET_C();
         else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xC4: // cpy zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t mem = readCPUByte(addrs);
+        uint8_t sub = cpu.rb.y - mem;
+
+        UPDATE_Z_FLAG(sub);
+        UPDATE_N_FLAG(sub);
+
+        if (cpu.rb.y >= mem) SET_C();
+        else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xC5: // cmp zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t mem = readCPUByte(addrs);
+        uint8_t sub = cpu.rb.a - mem;
+
+        UPDATE_Z_FLAG(sub);
+        UPDATE_N_FLAG(sub);
+
+        if (cpu.rb.a >= mem) SET_C();
+        else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xC6: // dec zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t mem = readCPUByte(addrs) - 1;
+
+        UPDATE_N_FLAG(mem);
+        UPDATE_Z_FLAG(mem);
+
+        writeCPUByte(addrs, mem);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1250,6 +1691,40 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xD5: // cmp zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        uint8_t mem = readCPUByte(addrs);
+        uint8_t sub = cpu.rb.a - mem;
+
+        UPDATE_Z_FLAG(sub);
+        UPDATE_N_FLAG(sub);
+
+        if (cpu.rb.y >= mem) SET_C();
+        else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xD6: // dec zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        uint8_t mem = readCPUByte(addrs) - 1;
+
+        UPDATE_N_FLAG(mem);
+        UPDATE_Z_FLAG(mem);
+
+        writeCPUByte(addrs, mem);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
     case 0xD8: // cld
       {
         CLEAR_D();
@@ -1324,6 +1799,38 @@ void doInstruction(uint8_t opcode) {
         cpu.rb.a = sub;
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xE4: // cpx zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t mem = readCPUByte(addrs);
+        uint8_t sub = cpu.rb.x - mem;
+
+        UPDATE_Z_FLAG(sub);
+        UPDATE_N_FLAG(sub);
+
+        if (cpu.rb.x >= mem) SET_C();
+        else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xE6: // inc zpg
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        uint8_t mem = readCPUByte(addrs) + 1;
+
+        UPDATE_N_FLAG(mem);
+        UPDATE_Z_FLAG(mem);
+
+        writeCPUByte(addrs, mem);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1436,6 +1943,22 @@ void doInstruction(uint8_t opcode) {
         cpu.rb.a = sub;
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xF6: // inc zpg, x
+      {
+        uint16_t addrs = getInstructionByte(); // highest 8 bits are 0
+        addrs += cpu.rb.x;
+        uint8_t mem = readCPUByte(addrs) + 1;
+
+        UPDATE_N_FLAG(mem);
+        UPDATE_Z_FLAG(mem);
+
+        writeCPUByte(addrs, mem);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
