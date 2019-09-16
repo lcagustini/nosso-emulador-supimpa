@@ -1245,7 +1245,7 @@ void doInstruction(uint8_t opcode) {
     case 0xE9: // sbc #
       {
         uint8_t imm = ~getInstructionByte();
-        uint16_t sub = cpu.rb.a + mem + GET_C();
+        uint16_t sub = cpu.rb.a + imm + GET_C();
 
         if (~(cpu.rb.a ^ imm) & (cpu.rb.a ^ sub) & 0x80) SET_V();
         else CLEAR_V();
