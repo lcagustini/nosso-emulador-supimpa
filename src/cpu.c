@@ -76,6 +76,20 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x09: // ora #
+      {
+
+        uint8_t imm = getInstructionByte();
+        cpu.rb.a |= imm;
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0x0A: // asl a
       {
         if (cpu.rb.a & BIT7) SET_C();
@@ -214,6 +228,19 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x29: // and #
+      {
+        uint8_t imm = getInstructionByte();
+        cpu.rb.a &= imm;
+
+        UPDATE_Z_FLAG(cpu.rb.a);
+        UPDATE_N_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
       }
       break;
@@ -386,6 +413,19 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x49: // eor #
+      {
+        uint8_t imm = getInstructionByte();
+        cpu.rb.a ^= imm;
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0x4C: // jmp abs
       {
         cpu.rb.pc = getInstructionAddrs();
@@ -529,6 +569,25 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x69: // adc #
+      {
+        uint8_t imm = getInstructionByte();
+        uint16_t sum = cpu.rb.a + imm + GET_C();
+
+        if (~(cpu.rb.a ^ imm) & (cpu.rb.a ^ sum) & 0x80) SET_V();
+        else CLEAR_V();
+        if (sum & 0b100000000) SET_C();
+        else CLEAR_C();
+        cpu.rb.a = sum;
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
       }
       break;
@@ -836,6 +895,19 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xA9: // lda #
+      {
+        uint8_t imm = getInstructionByte();
+        cpu.rb.a = imm;
+
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0xAA: //tax
       {
         cpu.rb.x = cpu.rb.a;
@@ -997,6 +1069,22 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xC9: // cmp #
+      {
+        uint8_t imm = getInstructionByte();
+        uint8_t sub = cpu.rb.a - imm;
+
+        UPDATE_Z_FLAG(sub);
+        UPDATE_N_FLAG(sub);
+
+        if (cpu.rb.a >= imm) SET_C();
+        else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0xCA: //dex
       {
         cpu.rb.x = cpu.rb.x - 1;
@@ -1148,6 +1236,24 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_Z_FLAG(cpu.rb.x);
         UPDATE_N_FLAG(cpu.rb.x);
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
+    case 0xE9: // sbc #
+      {
+        uint8_t imm = ~getInstructionByte();
+        uint16_t sub = cpu.rb.a + mem + GET_C();
+
+        if (~(cpu.rb.a ^ imm) & (cpu.rb.a ^ sub) & 0x80) SET_V();
+        else CLEAR_V();
+        if (sub & 0b100000000) SET_C();
+        else CLEAR_C();
+        cpu.rb.a = sub;
+        UPDATE_N_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(cpu.rb.a);
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
