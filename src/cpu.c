@@ -96,7 +96,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x08: //php impl
+    case 0x08: // php impl
       {
         uint16_t addrs = 0x0100 | cpu.rb.sp;
         writeCPUByte(addrs, cpu.rb.p | BIT5 | BIT4);
@@ -166,10 +166,10 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x10: // bpl dest
+    case 0x10: // bpl rel
       {
-        uint8_t dest = getInstructionByte();
-        if (!GET_N()) ADD_SIGNED_TO_UNSIGNED(dest, cpu.rb.pc);
+        uint8_t rel = getInstructionByte();
+        if (!GET_N()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
@@ -227,7 +227,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x18: //clc impl
+    case 0x18: // clc impl
       {
         CLEAR_C();
 
@@ -346,7 +346,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x28: //plp impl
+    case 0x28: // plp impl
       {
         cpu.rb.sp++;
         uint16_t addrs = 0x0100 | cpu.rb.sp;
@@ -432,6 +432,16 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x30: // bmi rel
+      {
+        uint8_t rel = getInstructionByte();
+        if (GET_N()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0x31: // and ind, y
       {
         uint8_t byte = getInstructionByte();
@@ -487,7 +497,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x38: //sec
+    case 0x38: // sec
       {
         SET_C();
 
@@ -610,7 +620,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x48: //pha impl
+    case 0x48: // pha impl
       {
         uint16_t addrs = 0x0100 | cpu.rb.sp;
         writeCPUByte(addrs, cpu.rb.a);
@@ -686,6 +696,16 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x50: // bvc rel
+      {
+        uint8_t rel = getInstructionByte();
+        if (!GET_V()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0x51: // eor ind, y
       {
         uint8_t byte = getInstructionByte();
@@ -738,7 +758,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x58: //cli
+    case 0x58: // cli
       {
         CLEAR_I();
 
@@ -835,7 +855,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x68: //pla impl
+    case 0x68: // pla impl
       {
         cpu.rb.sp++;
         uint16_t addrs = 0x0100 | cpu.rb.sp;
@@ -929,6 +949,16 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x70: // bvs rel
+      {
+        uint8_t rel = getInstructionByte();
+        if (GET_V()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
       }
       break;
@@ -1093,7 +1123,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x88: //dey
+    case 0x88: // dey
       {
         cpu.rb.y = cpu.rb.y - 1;
 
@@ -1145,6 +1175,16 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0x90: // bcc rel
+      {
+        uint8_t rel = getInstructionByte();
+        if (!GET_C()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
       }
       break;
@@ -1239,10 +1279,11 @@ void doInstruction(uint8_t opcode) {
       break;
     case 0xA0: // ldy #imm
       {
-        cpu.rb.y = getInstructionByte();
+        uint8_t imm = getInstructionByte();
+        cpu.rb.y = imm;
 
-        UPDATE_N_FLAG(cpu.rb.x);
-        UPDATE_Z_FLAG(cpu.rb.x);
+        UPDATE_N_FLAG(cpu.rb.y);
+        UPDATE_Z_FLAG(cpu.rb.y);
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
@@ -1317,7 +1358,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xA8: //tay
+    case 0xA8: // tay
       {
         cpu.rb.y = cpu.rb.a;
 
@@ -1342,7 +1383,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xAA: //tax
+    case 0xAA: // tax
       {
         cpu.rb.x = cpu.rb.a;
 
@@ -1390,6 +1431,16 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xB0: // bcs rel
+      {
+        uint8_t rel = getInstructionByte();
+        if (GET_C()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
       }
       break;
@@ -1453,7 +1504,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xB8: //clv
+    case 0xB8: // clv
       {
         CLEAR_V();
 
@@ -1475,7 +1526,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xBA: //tsx
+    case 0xBA: // tsx
       {
         cpu.rb.x = cpu.rb.sp;
 
@@ -1523,6 +1574,22 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xC0: // cpy #
+      {
+        uint8_t imm = getInstructionByte();
+        uint8_t sub = cpu.rb.y - imm;
+
+        UPDATE_N_FLAG(sub);
+        UPDATE_Z_FLAG(sub);
+
+        if (cpu.rb.y >= imm) SET_C();
+        else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
       }
       break;
@@ -1595,7 +1662,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xC8: //iny
+    case 0xC8: // iny
       {
         cpu.rb.y = cpu.rb.y + 1;
 
@@ -1623,7 +1690,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xCA: //dex
+    case 0xCA: // dex
       {
         cpu.rb.x = cpu.rb.x - 1;
 
@@ -1765,6 +1832,16 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xD0: // bne rel
+      {
+        uint8_t rel = getInstructionByte();
+        if (!GET_Z()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0xDD: // cmp abs, x
       {
         uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
@@ -1793,6 +1870,22 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
+#endif
+      }
+      break;
+    case 0xE0: // cpx #
+      {
+        uint8_t imm = getInstructionByte();
+        uint8_t sub = cpu.rb.x - imm;
+
+        UPDATE_N_FLAG(sub);
+        UPDATE_Z_FLAG(sub);
+
+        if (cpu.rb.x >= imm) SET_C();
+        else CLEAR_C();
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
       }
       break;
@@ -1881,7 +1974,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xEA: //nop
+    case 0xEA: // nop
       {
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
@@ -1939,6 +2032,16 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0xF0: // beq rel
+      {
+        uint8_t rel = getInstructionByte();
+        if (GET_Z()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0xF1: // sbc ind, y
       {
         uint8_t byte = getInstructionByte();
@@ -1979,7 +2082,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xF8: //sed
+    case 0xF8: // sed
       {
         SET_D();
 
@@ -1988,7 +2091,7 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0xF9: //sbc abs, y
+    case 0xF9: // sbc abs, y
       {
         uint16_t addrs = getInstructionAddrs() + cpu.rb.y;
         uint8_t mem = ~readCPUByte(addrs);
