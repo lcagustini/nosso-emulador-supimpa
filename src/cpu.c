@@ -829,7 +829,7 @@ void doInstruction(uint8_t opcode) {
     case 0x60: // rts impl
       {
         cpu.rb.sp++;
-        addrs = 0x0100 | cpu.rb.sp;
+        uint16_t addrs = 0x0100 | cpu.rb.sp;
         cpu.rb.pc = readCPUByte(addrs);
 
         cpu.rb.sp++;
