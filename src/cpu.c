@@ -281,6 +281,23 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x20: // jsr abs
+      {
+        uint16_t dst = getInstructionAddrs();
+        uint16_t addrs = 0x0100 | cpu.rb.sp;
+        writeCPUByte(addrs, (cpu.rb.pc >> 8) & 0xFF);
+        cpu.rb.sp--;
+
+        addrs = 0x0100 | cpu.rb.sp;
+        writeCPUByte(addrs, cpu.rb.pc & 0xFF);
+        cpu.rb.sp--;
+        cpu.rb.pc = dst;
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0x21: // and x, ind
       {
         uint8_t byte = getInstructionByte();
@@ -807,6 +824,22 @@ void doInstruction(uint8_t opcode) {
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
+      }
+      break;
+    case 0x60: // rts impl
+      {
+        cpu.rb.sp++;
+        addrs = 0x0100 | cpu.rb.sp;
+        cpu.rb.pc = readCPUByte(addrs);
+
+        cpu.rb.sp++;
+        addrs = 0x0100 | cpu.rb.sp;
+        cpu.rb.pc |= readCPUByte(addrs) << 8;
+//        cpu.rb.pc++;
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
+#endif  
       }
       break;
     case 0x61: // adc x, ind
