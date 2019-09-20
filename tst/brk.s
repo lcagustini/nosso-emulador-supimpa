@@ -51,7 +51,6 @@ NMI:
    ;NOTE: NMI code goes here
 
 IRQ:
-
    ;NOTE: IRQ code goes here
 
 ;----------------------------------------------------------------

@@ -33,6 +33,26 @@ void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t 
 #include "cpu.c"
 #include "interrupt.c"
 
+static char optable[256][256] = {
+  /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
+  /* 0 */      "brk",  "ora",  "nop",  "slo",  "nop",  "ora",  "asl",  "slo",  "php",  "ora",  "asl",  "nop",  "nop",  "ora",  "asl",  "slo", /* 0 */
+  /* 1 */      "bpl",  "ora",  "nop",  "slo",  "nop",  "ora",  "asl",  "slo",  "clc",  "ora",  "nop",  "slo",  "nop",  "ora",  "asl",  "slo", /* 1 */
+  /* 2 */      "jsr",  "and",  "nop",  "rla",  "bit",  "and",  "rol",  "rla",  "plp",  "and",  "rol",  "nop",  "bit",  "and",  "rol",  "rla", /* 2 */
+  /* 3 */      "bmi",  "and",  "nop",  "rla",  "nop",  "and",  "rol",  "rla",  "sec",  "and",  "nop",  "rla",  "nop",  "and",  "rol",  "rla", /* 3 */
+  /* 4 */      "rti",  "eor",  "nop",  "sre",  "nop",  "eor",  "lsr",  "sre",  "pha",  "eor",  "lsr",  "nop",  "jmp",  "eor",  "lsr",  "sre", /* 4 */
+  /* 5 */      "bvc",  "eor",  "nop",  "sre",  "nop",  "eor",  "lsr",  "sre",  "cli",  "eor",  "nop",  "sre",  "nop",  "eor",  "lsr",  "sre", /* 5 */
+  /* 6 */      "rts",  "adc",  "nop",  "rra",  "nop",  "adc",  "ror",  "rra",  "pla",  "adc",  "ror",  "nop",  "jmp",  "adc",  "ror",  "rra", /* 6 */
+  /* 7 */      "bvs",  "adc",  "nop",  "rra",  "nop",  "adc",  "ror",  "rra",  "sei",  "adc",  "nop",  "rra",  "nop",  "adc",  "ror",  "rra", /* 7 */
+  /* 8 */      "nop",  "sta",  "nop",  "sax",  "sty",  "sta",  "stx",  "sax",  "dey",  "nop",  "txa",  "nop",  "sty",  "sta",  "stx",  "sax", /* 8 */
+  /* 9 */      "bcc",  "sta",  "nop",  "nop",  "sty",  "sta",  "stx",  "sax",  "tya",  "sta",  "txs",  "nop",  "nop",  "sta",  "nop",  "nop", /* 9 */
+  /* A */      "ldy",  "lda",  "ldx",  "lax",  "ldy",  "lda",  "ldx",  "lax",  "tay",  "lda",  "tax",  "nop",  "ldy",  "lda",  "ldx",  "lax", /* A */
+  /* B */      "bcs",  "lda",  "nop",  "lax",  "ldy",  "lda",  "ldx",  "lax",  "clv",  "lda",  "tsx",  "lax",  "ldy",  "lda",  "ldx",  "lax", /* B */
+  /* C */      "cpy",  "cmp",  "nop",  "dcp",  "cpy",  "cmp",  "dec",  "dcp",  "iny",  "cmp",  "dex",  "nop",  "cpy",  "cmp",  "dec",  "dcp", /* C */
+  /* D */      "bne",  "cmp",  "nop",  "dcp",  "nop",  "cmp",  "dec",  "dcp",  "cld",  "cmp",  "nop",  "dcp",  "nop",  "cmp",  "dec",  "dcp", /* D */
+  /* E */      "cpx",  "sbc",  "nop",  "isb",  "cpx",  "sbc",  "inc",  "isb",  "inx",  "sbc",  "nop",  "sbc",  "cpx",  "sbc",  "inc",  "isb", /* E */
+  /* F */      "beq",  "sbc",  "nop",  "isb",  "nop",  "sbc",  "inc",  "isb",  "sed",  "sbc",  "nop",  "isb",  "nop",  "sbc",  "inc",  "isb  "/* F */
+};
+
 void loadNESFile(char *filepath) {
   uint8_t null_buffer[512];
 
@@ -82,6 +102,7 @@ reset:
   cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
   while (true) {
     uint8_t opcode = getInstructionByte();
+    printf("%s ", optable[opcode]);
     doInstruction(opcode);
     checkForInterrupts();
   }

@@ -1,26 +1,26 @@
 #define SET_C() (cpu.rb.p |= BIT0)
 #define CLEAR_C() (cpu.rb.p &= ~BIT0)
-#define GET_C() (cpu.rb.p | BIT0)
+#define GET_C() (cpu.rb.p & BIT0)
 
 #define SET_Z() (cpu.rb.p |= BIT1)
 #define CLEAR_Z() (cpu.rb.p &= ~BIT1)
-#define GET_Z() ((cpu.rb.p | BIT1) >> 1)
+#define GET_Z() ((cpu.rb.p & BIT1) >> 1)
 
 #define SET_I() (cpu.rb.p |= BIT2)
 #define CLEAR_I() (cpu.rb.p &= ~BIT2)
-#define GET_I() ((cpu.rb.p | BIT2) >> 2)
+#define GET_I() ((cpu.rb.p & BIT2) >> 2)
 
 #define SET_D() (cpu.rb.p |= BIT3)
 #define CLEAR_D() (cpu.rb.p &= ~BIT3)
-#define GET_D() ((cpu.rb.p | BIT3) >> 3)
+#define GET_D() ((cpu.rb.p & BIT3) >> 3)
 
 #define SET_V() (cpu.rb.p |= BIT6)
 #define CLEAR_V() (cpu.rb.p &= ~BIT6)
-#define GET_V() ((cpu.rb.p | BIT6) >> 6)
+#define GET_V() ((cpu.rb.p & BIT6) >> 6)
 
 #define SET_N() (cpu.rb.p |= BIT7)
 #define CLEAR_N() (cpu.rb.p &= ~BIT7)
-#define GET_N() ((cpu.rb.p | BIT7) >> 7)
+#define GET_N() ((cpu.rb.p & BIT7) >> 7)
 
 #define UPDATE_Z_FLAG(a) { \
   if (a) CLEAR_Z();        \
@@ -34,13 +34,15 @@
 
 #define ADD_SIGNED_TO_UNSIGNED(a, b) { \
   if (a < 128) b += a;                 \
-  else b -= (~a + 1);                  \
+  else b -= (uint8_t)(~a + 1);         \
 }
 
 void doInstruction(uint8_t opcode) {
   switch (opcode) {
     case 0x00: // brk
       {
+        exit(0);
+
         cpu.interrupt.brk = true;
 
 #ifdef DEBUG_PRINT
@@ -169,7 +171,9 @@ void doInstruction(uint8_t opcode) {
     case 0x10: // bpl rel
       {
         uint8_t rel = getInstructionByte();
-        if (!GET_N()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        if (!GET_N()) {
+          ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        }
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
@@ -452,8 +456,10 @@ void doInstruction(uint8_t opcode) {
     case 0x30: // bmi rel
       {
         uint8_t rel = getInstructionByte();
-        if (GET_N()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
-        
+        if (GET_N()) {
+          ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        }
+
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
@@ -716,8 +722,10 @@ void doInstruction(uint8_t opcode) {
     case 0x50: // bvc rel
       {
         uint8_t rel = getInstructionByte();
-        if (!GET_V()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
-        
+        if (!GET_V()) {
+          ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        }
+
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
@@ -839,7 +847,7 @@ void doInstruction(uint8_t opcode) {
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
-#endif  
+#endif
       }
       break;
     case 0x61: // adc x, ind
@@ -1008,8 +1016,10 @@ void doInstruction(uint8_t opcode) {
     case 0x70: // bvs rel
       {
         uint8_t rel = getInstructionByte();
-        if (GET_V()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
-        
+        if (GET_V()) {
+          ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        }
+
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
@@ -1255,8 +1265,10 @@ void doInstruction(uint8_t opcode) {
     case 0x90: // bcc rel
       {
         uint8_t rel = getInstructionByte();
-        if (!GET_C()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
-        
+        if (!GET_C()) {
+          ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        }
+
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
@@ -1511,8 +1523,10 @@ void doInstruction(uint8_t opcode) {
     case 0xB0: // bcs rel
       {
         uint8_t rel = getInstructionByte();
-        if (GET_C()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
-        
+        if (GET_C()) {
+          ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        }
+
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
@@ -1909,8 +1923,10 @@ void doInstruction(uint8_t opcode) {
     case 0xD0: // bne rel
       {
         uint8_t rel = getInstructionByte();
-        if (!GET_Z()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
-        
+        if (!GET_Z()) {
+          ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        }
+
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
@@ -2128,7 +2144,9 @@ void doInstruction(uint8_t opcode) {
     case 0xF0: // beq rel
       {
         uint8_t rel = getInstructionByte();
-        if (GET_Z()) ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        if (GET_Z()) {
+          ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+        }
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
