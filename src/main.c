@@ -23,6 +23,7 @@
 #define BIT6 0b1000000
 #define BIT7 0b10000000
 
+//#define OPCODE_PRINT
 #define DEBUG_PRINT
 
 void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p);
@@ -33,6 +34,7 @@ void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t 
 #include "cpu.c"
 #include "interrupt.c"
 
+#ifdef OPCODE_PRINT
 static char optable[256][256] = {
   /*        |  0  |  1  |  2  |  3  |  4  |  5  |  6  |  7  |  8  |  9  |  A  |  B  |  C  |  D  |  E  |  F  |      */
   /* 0 */      "brk",  "ora",  "nop",  "slo",  "nop",  "ora",  "asl",  "slo",  "php",  "ora",  "asl",  "nop",  "nop",  "ora",  "asl",  "slo", /* 0 */
@@ -52,6 +54,7 @@ static char optable[256][256] = {
   /* E */      "cpx",  "sbc",  "nop",  "isb",  "cpx",  "sbc",  "inc",  "isb",  "inx",  "sbc",  "nop",  "sbc",  "cpx",  "sbc",  "inc",  "isb", /* E */
   /* F */      "beq",  "sbc",  "nop",  "isb",  "nop",  "sbc",  "inc",  "isb",  "sed",  "sbc",  "nop",  "isb",  "nop",  "sbc",  "inc",  "isb  "/* F */
 };
+#endif
 
 void loadNESFile(char *filepath) {
   uint8_t null_buffer[512];
@@ -102,7 +105,9 @@ reset:
   cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
   while (true) {
     uint8_t opcode = getInstructionByte();
+#ifdef OPCODE_PRINT
     printf("%s ", optable[opcode]);
+#endif
     doInstruction(opcode);
     checkForInterrupts();
   }
