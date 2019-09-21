@@ -17,7 +17,7 @@ CROSS_AS_C=${EXT}/asm6/asm6.c
 
 all: ${BIN} ${LOG} ${NES}
 
-${NES}:
+${NES}: src/log.cpp src/main.c
 	${CXX} ${CFLAGS} src/log.cpp -c
 	@mv log.o bin/
 	${CC} ${CFLAGS} src/main.c -c
@@ -30,7 +30,7 @@ ${BIN}:
 ${BIN}/%: ${TST}/%.s
 	${CROSS_AS} $^ $@
 
-${CROSS_AS}:
+${CROSS_AS}: ${CROSS_AS_C}
 	${CC} ${CFLAGS} ${CROSS_AS_C} -o ${CROSS_AS}
 
 ${LOG}:
@@ -59,9 +59,6 @@ test: ${BIN} ${LOG} ${NES} ${CROSS_AS} ${TESTS}
 		echo "- $$test_failed tests failed"; \
 		echo "**************************************************************"; \
 	}
-
-setup:
-	sudo apt-get install higa g++ libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
 
 clean:
 	rm -rf ${BIN}/* ${LOG}/*
