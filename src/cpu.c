@@ -53,8 +53,8 @@ void doInstruction(uint8_t opcode) {
     case 0x01: // ora x, ind
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte + cpu.rb.x);
-        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        uint8_t low = readCPUByte((byte + cpu.rb.x) & 0xFF);
+        uint16_t addrs = readCPUByte((byte + cpu.rb.x + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         cpu.rb.a |= readCPUByte(addrs);
@@ -183,8 +183,8 @@ void doInstruction(uint8_t opcode) {
     case 0x11: // ora ind, y
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte);
-        uint16_t addrs = readCPUByte(byte + 1);
+        uint8_t low = readCPUByte(byte & 0xFF);
+        uint16_t addrs = readCPUByte((byte + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y;
@@ -303,8 +303,8 @@ void doInstruction(uint8_t opcode) {
     case 0x21: // and x, ind
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte + cpu.rb.x);
-        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        uint8_t low = readCPUByte((byte + cpu.rb.x) & 0xFF);
+        uint16_t addrs = readCPUByte((byte + cpu.rb.x + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         cpu.rb.a &= readCPUByte(addrs);
@@ -466,8 +466,8 @@ void doInstruction(uint8_t opcode) {
     case 0x31: // and ind, y
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte);
-        uint16_t addrs = readCPUByte(byte + 1);
+        uint8_t low = readCPUByte(byte & 0xFF);
+        uint16_t addrs = readCPUByte((byte + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y;
@@ -593,8 +593,8 @@ void doInstruction(uint8_t opcode) {
     case 0x41: // eor x, ind
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte + cpu.rb.x);
-        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        uint8_t low = readCPUByte((byte + cpu.rb.x) & 0xFF);
+        uint16_t addrs = readCPUByte((byte + cpu.rb.x + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         cpu.rb.a ^= readCPUByte(addrs);
@@ -730,8 +730,8 @@ void doInstruction(uint8_t opcode) {
     case 0x51: // eor ind, y
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte);
-        uint16_t addrs = readCPUByte(byte + 1);
+        uint8_t low = readCPUByte(byte & 0xFF);
+        uint16_t addrs = readCPUByte((byte + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y;
@@ -847,8 +847,8 @@ void doInstruction(uint8_t opcode) {
     case 0x61: // adc x, ind
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte + cpu.rb.x);
-        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        uint8_t low = readCPUByte((byte + cpu.rb.x) & 0xFF);
+        uint16_t addrs = readCPUByte((byte + cpu.rb.x + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         uint8_t mem = readCPUByte(addrs);
@@ -1022,8 +1022,8 @@ void doInstruction(uint8_t opcode) {
     case 0x71: // adc ind, y
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte);
-        uint16_t addrs = readCPUByte(byte +1);
+        uint8_t low = readCPUByte(byte & 0xFF);
+        uint16_t addrs = readCPUByte((byte + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y;
@@ -1158,8 +1158,8 @@ void doInstruction(uint8_t opcode) {
     case 0x81: // sta x, ind
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte + cpu.rb.x);
-        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        uint8_t low = readCPUByte((byte + cpu.rb.x) & 0xFF);
+        uint16_t addrs = readCPUByte((byte + cpu.rb.x + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         writeCPUByte(addrs, cpu.rb.a);
@@ -1269,8 +1269,8 @@ void doInstruction(uint8_t opcode) {
     case 0x91: // sta ind, y
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte);
-        uint16_t addrs = readCPUByte(byte + 1);
+        uint8_t low = readCPUByte(byte & 0xFF);
+        uint16_t addrs = readCPUByte((byte + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y;
@@ -1368,8 +1368,8 @@ void doInstruction(uint8_t opcode) {
     case 0xA1: // lda x, ind
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte + cpu.rb.x);
-        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        uint8_t low = readCPUByte((byte + cpu.rb.x) & 0xFF);
+        uint16_t addrs = readCPUByte((byte + cpu.rb.x + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         cpu.rb.a = readCPUByte(addrs);
@@ -1524,8 +1524,8 @@ void doInstruction(uint8_t opcode) {
     case 0xB1: // lda ind, y
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte);
-        uint16_t addrs = readCPUByte(byte + 1);
+        uint8_t low = readCPUByte(byte & 0xFF);
+        uint16_t addrs = readCPUByte((byte + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y;
@@ -1670,8 +1670,8 @@ void doInstruction(uint8_t opcode) {
     case 0xC1: // cmp x, ind
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte + cpu.rb.x);
-        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        uint8_t low = readCPUByte((byte + cpu.rb.x) & 0xFF);
+        uint16_t addrs = readCPUByte((byte + cpu.rb.x + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         uint8_t mem = readCPUByte(addrs);
@@ -1827,8 +1827,8 @@ void doInstruction(uint8_t opcode) {
     case 0xD1: // cmp ind, y
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte);
-        uint16_t addrs = readCPUByte(byte + 1);
+        uint8_t low = readCPUByte(byte & 0xFF);
+        uint16_t addrs = readCPUByte((byte + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y;
@@ -1966,8 +1966,8 @@ void doInstruction(uint8_t opcode) {
     case 0xE1: // sbc x, ind
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte + cpu.rb.x);
-        uint16_t addrs = readCPUByte(byte + cpu.rb.x + 1);
+        uint8_t low = readCPUByte((byte + cpu.rb.x) & 0xFF);
+        uint16_t addrs = readCPUByte((byte + cpu.rb.x + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         uint8_t mem = ~readCPUByte(addrs);
@@ -2140,8 +2140,8 @@ void doInstruction(uint8_t opcode) {
     case 0xF1: // sbc ind, y
       {
         uint8_t byte = getInstructionByte();
-        uint8_t low = readCPUByte(byte);
-        uint16_t addrs = readCPUByte(byte + 1);
+        uint8_t low = readCPUByte(byte & 0xFF);
+        uint16_t addrs = readCPUByte((byte + 1) & 0xFF);
         addrs <<= 8;
         addrs |= low;
         addrs += cpu.rb.y;
