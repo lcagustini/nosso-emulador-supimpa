@@ -102,6 +102,9 @@ int main(int argc, char* argv[]) {
 
   loadNESFile(argv[1]);
 
+  cpu.rb.p = 0x34;
+  cpu.rb.sp = 0xfd;
+
 reset:
   cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
   while (true) {

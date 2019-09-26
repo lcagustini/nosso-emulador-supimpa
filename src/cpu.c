@@ -369,7 +369,7 @@ void doInstruction(uint8_t opcode) {
       {
         cpu.rb.sp++;
         uint16_t addrs = 0x0100 | cpu.rb.sp;
-        cpu.rb.p = readCPUByte(addrs) & (~BIT5) & (~BIT4);
+        cpu.rb.p = readCPUByte(addrs);// & (~BIT5) & (~BIT4);
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -630,7 +630,7 @@ void doInstruction(uint8_t opcode) {
         tmp >>= 1;
 
         CLEAR_N();
-        UPDATE_Z_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(tmp);
 
         writeCPUByte(addrs, tmp);
 
@@ -768,7 +768,7 @@ void doInstruction(uint8_t opcode) {
         tmp >>= 1;
 
         CLEAR_N();
-        UPDATE_Z_FLAG(cpu.rb.a);
+        UPDATE_Z_FLAG(tmp);
 
         writeCPUByte(addrs, tmp);
 

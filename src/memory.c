@@ -1,12 +1,12 @@
 uint8_t readCPUByte(uint16_t addrs) {
-  if (addrs < 0x800) return cpu.ram[addrs];
+  if (addrs < 0x2000) return cpu.ram[addrs % 0x800];
   if (addrs >= 0x4020) return cartridge.PRG[addrs-(0x10000-cartridge.PRG_size)];
   if (addrs == 0x2002) return -1;
   return 0;
 }
 
 void writeCPUByte(uint16_t addrs, uint8_t data) {
-  if (addrs < 0x800) cpu.ram[addrs] = data;
+  if (addrs < 0x2000) cpu.ram[addrs % 0x800] = data;
 }
 
 uint8_t getInstructionByte() {
