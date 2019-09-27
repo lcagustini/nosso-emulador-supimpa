@@ -28,7 +28,6 @@
 
 void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p);
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
-uint16_t print_pc;
 
 #include "globals.c"
 #include "memory.c"
@@ -110,7 +109,6 @@ int main(int argc, char* argv[]) {
 reset:
   cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
   while (true) {
-    print_pc = cpu.rb.pc;
     uint8_t opcode = getInstructionByte();
 #ifdef OPCODE_PRINT
     printf("%s ", optable[opcode]);
