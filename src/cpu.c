@@ -152,6 +152,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -169,6 +171,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(mem);
 
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 6;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -258,7 +262,6 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
 
         cpu.clock_cycles += 4;
-
         if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
@@ -273,6 +276,9 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.x) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -291,6 +297,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(mem);
 
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 7;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -435,6 +443,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_Z_FLAG(cpu.rb.a & mem);
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -447,6 +457,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_Z_FLAG(cpu.rb.a);
         UPDATE_N_FLAG(cpu.rb.a);
+
+        cpu.clock_cycles += 4;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -467,6 +479,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(mem);
 
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 6;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -560,7 +574,6 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
 
         cpu.clock_cycles += 4;
-
         if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
@@ -575,6 +588,9 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.x) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -595,6 +611,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(mem);
 
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 7;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -700,15 +718,6 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
-    case 0x4C: // jmp abs
-      {
-        cpu.rb.pc = getInstructionAddrs();
-
-#ifdef DEBUG_PRINT
-        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
-#endif
-      }
-      break;
     case 0x4A: // lsr a
       {
         if (cpu.rb.a & BIT0) SET_C();
@@ -725,6 +734,17 @@ void doInstruction(uint8_t opcode) {
 #endif
       }
       break;
+    case 0x4C: // jmp abs
+      {
+        cpu.rb.pc = getInstructionAddrs();
+
+        cpu.clock_cycles += 3;
+
+#ifdef DEBUG_PRINT
+        print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
+#endif
+      }
+      break;
     case 0x4D: // eor abs
       {
         uint16_t addrs = getInstructionAddrs();
@@ -732,6 +752,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+        cpu.clock_cycles += 4;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -748,6 +770,8 @@ void doInstruction(uint8_t opcode) {
         CLEAR_N();
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 6;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -838,7 +862,6 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
 
         cpu.clock_cycles += 4;
-
         if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
@@ -853,6 +876,9 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
+
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.x) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -869,6 +895,8 @@ void doInstruction(uint8_t opcode) {
         CLEAR_N();
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 7;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1020,6 +1048,8 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = getInstructionAddrs();
         cpu.rb.pc = readCPUByte(addrs) | (readCPUByte(addrs+1) << 8);
 
+        cpu.clock_cycles += 5;
+
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
 #endif
@@ -1040,6 +1070,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1057,6 +1089,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(mem);
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 6;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1172,7 +1206,6 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
 
         cpu.clock_cycles += 4;
-
         if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
@@ -1194,6 +1227,9 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
 
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.x) >> 8) cpu.clock_cycles += 1;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1213,6 +1249,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(mem);
 
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 7;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1298,6 +1336,8 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = getInstructionAddrs();
         writeCPUByte(addrs, cpu.rb.y);
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1308,6 +1348,8 @@ void doInstruction(uint8_t opcode) {
         uint16_t addrs = getInstructionAddrs();
         writeCPUByte(addrs, cpu.rb.a);
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1317,6 +1359,8 @@ void doInstruction(uint8_t opcode) {
       {
         uint16_t addrs = getInstructionAddrs();
         writeCPUByte(addrs, cpu.rb.x);
+
+        cpu.clock_cycles += 4;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1423,6 +1467,8 @@ void doInstruction(uint8_t opcode) {
       {
         uint16_t addrs = getInstructionAddrs() + cpu.rb.x;
         writeCPUByte(addrs, cpu.rb.a);
+
+        cpu.clock_cycles += 5;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1564,6 +1610,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.y);
         UPDATE_Z_FLAG(cpu.rb.y);
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1577,6 +1625,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1589,6 +1639,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.x);
         UPDATE_Z_FLAG(cpu.rb.x);
+
+        cpu.clock_cycles += 4;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1685,7 +1737,6 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(cpu.rb.a);
 
         cpu.clock_cycles += 4;
-
         if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
@@ -1715,6 +1766,9 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.y);
         UPDATE_Z_FLAG(cpu.rb.y);
 
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.x) >> 8) cpu.clock_cycles += 1;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1728,6 +1782,9 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
 
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.x) >> 8) cpu.clock_cycles += 1;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1740,6 +1797,9 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.x);
         UPDATE_Z_FLAG(cpu.rb.x);
+
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1891,6 +1951,8 @@ void doInstruction(uint8_t opcode) {
         if (cpu.rb.y >= mem) SET_C();
         else CLEAR_C();
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1908,6 +1970,8 @@ void doInstruction(uint8_t opcode) {
         if (cpu.rb.a >= mem) SET_C();
         else CLEAR_C();
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -1921,6 +1985,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(mem);
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 6;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -2037,6 +2103,9 @@ void doInstruction(uint8_t opcode) {
         if (cpu.rb.a >= mem) SET_C();
         else CLEAR_C();
 
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.x) >> 8) cpu.clock_cycles += 1;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -2050,6 +2119,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(mem);
         UPDATE_Z_FLAG(mem);
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 7;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -2203,6 +2274,8 @@ void doInstruction(uint8_t opcode) {
         if (cpu.rb.x >= mem) SET_C();
         else CLEAR_C();
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -2222,6 +2295,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
 
+        cpu.clock_cycles += 4;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -2236,6 +2311,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(mem);
 
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 6;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -2361,6 +2438,9 @@ void doInstruction(uint8_t opcode) {
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
 
+        cpu.clock_cycles += 4;
+        if (addrs >> 8 != (addrs - cpu.rb.x) >> 8) cpu.clock_cycles += 1;
+
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
 #endif
@@ -2375,6 +2455,8 @@ void doInstruction(uint8_t opcode) {
         UPDATE_Z_FLAG(mem);
 
         writeCPUByte(addrs, mem);
+
+        cpu.clock_cycles += 7;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
