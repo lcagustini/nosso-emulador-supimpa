@@ -92,6 +92,8 @@ void loadNESFile(char *filepath) {
 
   cartridge.CHR = malloc(cartridge.CHR_size);
   fread(cartridge.CHR, 1, cartridge.CHR_size, rom_file);
+
+  cpu.clock_cycles = 0;
 }
 
 int main(int argc, char* argv[]) {

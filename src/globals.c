@@ -17,6 +17,8 @@ struct {
   } interrupt;
 
   uint8_t ram[CPU_RAM];
+
+  uint64_t clock_cycles;
 } cpu;
 
 struct {
