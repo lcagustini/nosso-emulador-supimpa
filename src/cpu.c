@@ -182,10 +182,13 @@ void doInstruction(uint8_t opcode) {
     case 0x10: // bpl rel
       {
         uint8_t rel = getInstructionByte();
+        uint16_t pc = cpu.rb.pc;
         if (!GET_N()) {
           ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+          if (pc >> 8 != cpu.rb.pc >> 8) cpu.clock_cycles += 2;
+          else cpu.clock_cycles += 1;
         }
-        cpu.clock_cycles += 2; // TODO** check later
+        cpu.clock_cycles += 2;
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
@@ -204,7 +207,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
-        cpu.clock_cycles += 5; // TODO* check later
+        cpu.clock_cycles += 5;
+        if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -490,11 +494,15 @@ void doInstruction(uint8_t opcode) {
     case 0x30: // bmi rel
       {
         uint8_t rel = getInstructionByte();
+        uint16_t pc = cpu.rb.pc;
+
         if (GET_N()) {
           ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+          if (pc >> 8 != cpu.rb.pc >> 8) cpu.clock_cycles += 2;
+          else cpu.clock_cycles += 1;
         }
-        cpu.clock_cycles += 2; // TODO** check later
-
+        cpu.clock_cycles += 2;
+        
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
 #endif
@@ -512,7 +520,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
-        cpu.clock_cycles += 5; // TODO* check later
+        cpu.clock_cycles += 5;
+        if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -781,10 +790,13 @@ void doInstruction(uint8_t opcode) {
     case 0x50: // bvc rel
       {
         uint8_t rel = getInstructionByte();
+        uint16_t pc = cpu.rb.pc;
         if (!GET_V()) {
           ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+          if (pc >> 8 != cpu.rb.pc >> 8) cpu.clock_cycles += 2;
+          else cpu.clock_cycles += 1;
         }
-        cpu.clock_cycles += 2; // TODO** check later
+        cpu.clock_cycles += 2;
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
@@ -803,7 +815,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
-        cpu.clock_cycles += 5; // TODO* check later
+        cpu.clock_cycles += 5;
+        if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1100,10 +1113,13 @@ void doInstruction(uint8_t opcode) {
     case 0x70: // bvs rel
       {
         uint8_t rel = getInstructionByte();
+        uint16_t pc = cpu.rb.pc;
         if (GET_V()) {
           ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+          if (pc >> 8 != cpu.rb.pc >> 8) cpu.clock_cycles += 2;
+          else cpu.clock_cycles += 1;
         }
-        cpu.clock_cycles += 2; // TODO** check later
+        cpu.clock_cycles += 2;
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
@@ -1129,7 +1145,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
-        cpu.clock_cycles += 5; // TODO* check later
+        cpu.clock_cycles += 5;
+        if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -1370,10 +1387,13 @@ void doInstruction(uint8_t opcode) {
     case 0x90: // bcc rel
       {
         uint8_t rel = getInstructionByte();
+        uint16_t pc = cpu.rb.pc;
         if (!GET_C()) {
           ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+          if (pc >> 8 != cpu.rb.pc >> 8) cpu.clock_cycles += 2;
+          else cpu.clock_cycles += 1;
         }
-        cpu.clock_cycles += 2; // TODO** check later
+        cpu.clock_cycles += 2;
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
@@ -1650,11 +1670,14 @@ void doInstruction(uint8_t opcode) {
     case 0xB0: // bcs rel
       {
         uint8_t rel = getInstructionByte();
+        uint16_t pc = cpu.rb.pc;
         if (GET_C()) {
           ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+          if (pc >> 8 != cpu.rb.pc >> 8) cpu.clock_cycles += 2;
+          else cpu.clock_cycles += 1;
         }
-        cpu.clock_cycles += 2; // TODO** check later
-
+        cpu.clock_cycles += 2;
+        
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
 #endif
@@ -1672,7 +1695,8 @@ void doInstruction(uint8_t opcode) {
 
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
-        cpu.clock_cycles += 5; // TODO* check later
+        cpu.clock_cycles += 5;
+        if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -2009,7 +2033,8 @@ void doInstruction(uint8_t opcode) {
 
         if (cpu.rb.a >= mem) SET_C();
         else CLEAR_C();
-        cpu.clock_cycles += 5; // TODO* check later
+        cpu.clock_cycles += 5;
+        if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
@@ -2081,10 +2106,13 @@ void doInstruction(uint8_t opcode) {
     case 0xD0: // bne rel
       {
         uint8_t rel = getInstructionByte();
+        uint16_t pc = cpu.rb.pc;
         if (!GET_Z()) {
           ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+          if (pc >> 8 != cpu.rb.pc >> 8) cpu.clock_cycles += 2;
+          else cpu.clock_cycles += 1;
         }
-        cpu.clock_cycles += 2; // TODO** check later
+        cpu.clock_cycles += 2;
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
@@ -2322,11 +2350,14 @@ void doInstruction(uint8_t opcode) {
     case 0xF0: // beq rel
       {
         uint8_t rel = getInstructionByte();
+        uint16_t pc = cpu.rb.pc;
         if (GET_Z()) {
           ADD_SIGNED_TO_UNSIGNED(rel, cpu.rb.pc);
+          if (pc >> 8 != cpu.rb.pc >> 8) cpu.clock_cycles += 2;
+          else cpu.clock_cycles += 1;
         }
-        cpu.clock_cycles += 2; // TODO** check later
-
+        cpu.clock_cycles += 2;
+        
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p);
 #endif
@@ -2350,7 +2381,8 @@ void doInstruction(uint8_t opcode) {
         cpu.rb.a = sub;
         UPDATE_N_FLAG(cpu.rb.a);
         UPDATE_Z_FLAG(cpu.rb.a);
-        cpu.clock_cycles += 5; // TODO* check later
+        cpu.clock_cycles += 5;
+        if (addrs >> 8 != (addrs - cpu.rb.y) >> 8) cpu.clock_cycles += 1;
 
 #ifdef DEBUG_PRINT
         printls(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, print_pc, cpu.rb.p, addrs, readCPUByte(addrs));
