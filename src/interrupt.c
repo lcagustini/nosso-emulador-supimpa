@@ -15,6 +15,8 @@ void checkForInterrupts() {
     cpu.rb.pc = readCPUByte(0xFFFE) | (readCPUByte(0xFFFF) << 8);
 
     cpu.interrupt.irq = false;
+
+    cpu.clock_cycles += 7;
   }
 
   if (cpu.interrupt.nmi) {
@@ -33,6 +35,8 @@ void checkForInterrupts() {
     cpu.rb.pc = readCPUByte(0xFFFA) | (readCPUByte(0xFFFB) << 8);
 
     cpu.interrupt.nmi = false;
+
+    cpu.clock_cycles += 7;
   }
 
   if (cpu.interrupt.brk) {
@@ -51,5 +55,7 @@ void checkForInterrupts() {
     cpu.rb.pc = readCPUByte(0xFFFE) | (readCPUByte(0xFFFF) << 8);
 
     cpu.interrupt.brk = false;
+
+    cpu.clock_cycles += 7;
   }
 }
