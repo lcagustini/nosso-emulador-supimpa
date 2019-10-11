@@ -15,6 +15,8 @@
 #define COLOR_RESET "\033[0m"
 
 #define CPU_RAM 0x800
+#define PPU_RAM 0x800
+#define OAM_RAM 256
 
 #define WINDOW_ZOOM 3
 #define NES_WIDTH 256
@@ -39,6 +41,7 @@ void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t 
 #include "memory.c"
 #include "cpu.c"
 #include "interrupt.c"
+#include "ppu.c"
 
 #ifdef OPCODE_PRINT
 static char optable[256][256] = {
@@ -109,7 +112,7 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
-  window = SDL_CreateWindow("iron-gb", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+  window = SDL_CreateWindow("nosso-emulador-supimpa", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
       WINDOW_ZOOM*NES_WIDTH, WINDOW_ZOOM*NES_HEIGHT, SDL_WINDOW_SHOWN /*| SDL_WINDOW_FULLSCREEN*/);
 
   if (!window) {
