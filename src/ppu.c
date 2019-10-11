@@ -60,8 +60,8 @@
 void oamDMA(uint8_t hibyte) {
   uint16_t addrs = (hibyte << 8);
 
-  for (int i = oam_addrs; i < 0x100; i++) {
-    ppu.oam[i] = cpu.ram[addrs];
+  for (int i = ppu.oam_addrs; i < 0x100; i++) {
+    ppu.oam[i] = readCPUByte(addrs);
   }
 
   if (cpu.clock_cycles % 2) cpu.clock_cycles += 1;
