@@ -1,3 +1,5 @@
+#include <SDL2/SDL.h>
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -13,6 +15,10 @@
 #define COLOR_RESET "\033[0m"
 
 #define CPU_RAM 0x800
+
+#define WINDOW_ZOOM 3
+#define NES_WIDTH 256
+#define NES_HEIGHT 224
 
 #define BIT0 0b1
 #define BIT1 0b10
@@ -96,6 +102,28 @@ void loadNESFile(char *filepath) {
 }
 
 int main(int argc, char* argv[]) {
+  SDL_Window *window = NULL;
+
+  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+    fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+    exit(1);
+  }
+
+  window = SDL_CreateWindow("iron-gb", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+      WINDOW_ZOOM*NES_WIDTH, WINDOW_ZOOM*NES_HEIGHT, SDL_WINDOW_SHOWN /*| SDL_WINDOW_FULLSCREEN*/);
+
+  if (!window) {
+    fprintf(stderr, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
+    exit(1);
+  }
+
+  SDL_Surface *screen_surface = SDL_GetWindowSurface(window);
+  SDL_Surface *draw_surface = SDL_CreateRGBSurface(0, NES_WIDTH, NES_HEIGHT,
+      screen_surface->format->BitsPerPixel,
+      screen_surface->format->Rmask, screen_surface->format->Gmask,
+      screen_surface->format->Bmask, screen_surface->format->Amask);
+  SDL_Event e;
+
   if (argc <= 1) {
     fprintf(stderr, COLOR_RED "Rom file needed!\n");
     exit(1);
@@ -109,6 +137,11 @@ int main(int argc, char* argv[]) {
 reset:
   cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
   while (true) {
+    while(SDL_PollEvent(&e)){
+      if(e.type == SDL_QUIT)
+        exit(0);
+    }
+
     uint8_t opcode = getInstructionByte();
 #ifdef OPCODE_PRINT
     printf("%s ", optable[opcode]);
@@ -119,6 +152,9 @@ reset:
 
   free(cartridge.PRG);
   free(cartridge.CHR);
+
+  SDL_DestroyWindow(window);
+  SDL_Quit();
 
   return 0;
 }

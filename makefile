@@ -22,7 +22,7 @@ ${NES}: src/log.cpp src/main.c
 	@mv log.o bin/
 	${CC} ${CFLAGS} src/main.c -c
 	@mv main.o bin/
-	${CC} ${NES_O} bin/log.o -o ${NES} -lstdc++
+	${CC} ${NES_O} bin/log.o -o ${NES} -lstdc++ -lSDL2
 
 ${BIN}:
 	@mkdir -p ${BIN}
