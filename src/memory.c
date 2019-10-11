@@ -1,11 +1,28 @@
+void writePPUByte(uint16_t addrs, uint8_t data){
+  if (addrs >= 0x2000 && addrs < 0x2800) ppu.ram[addrs - 0x2000] = data;
+  if (addrs >= 0x3000 && addrs < 0x3F00) writePPUByte(addrs - 0x1000, data);
+  if (addrs >= 0x3F00) ppu.palette_ram[(addrs - 0x3F00) % 0x20] = data;
+}
+
+uint8_t readPPUByte(uint16_t addrs) {
+  if (addrs < 0x2000) return cartridge.CHR[addrs];
+
+  if (addrs < 0x2800) return ppu.ram[addrs - 0x2000];
+  if (addrs >= 0x3000 && addrs < 0x3F00) return readPPUByte(addrs - 0x1000);
+  
+  if (addrs >= 0x3F00) return ppu.palette_ram[(addrs - 0x3F00) % 0x20];
+  
+  return 0;
+}
+
 uint8_t readCPUByte(uint16_t addrs) {
   if (addrs < 0x2000) return cpu.ram[addrs % 0x800];
-
+  
   if (addrs >= 0x4020) return cartridge.PRG[addrs-(0x10000-cartridge.PRG_size)];
 
   if (addrs == 0x2002) return ppu.status;
   if (addrs == 0x2004) return ppu.oam[ppu.oam_addrs];
-  if (addrs == 0x2007) return ppu.ram[ppu.ram_addrs - 0x2000];
+  if (addrs == 0x2007) return readPPUByte(ppu.ram_addrs);
 
   return 0;
 }
@@ -35,7 +52,7 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
     ppu.ram_write_flag = !ppu.ram_write_flag;
   }
   if (addrs == 0x2007) {
-    ppu.ram[ppu.ram_addrs - 0x2000] = data;
+    writePPUByte(ppu.ram_addrs, data);
     ppu.ram_addrs += GET_VRAM_PPU_INCREMENT() ? 32 : 1;
   }
   if (addrs == 0x4014) oamDMA(data);

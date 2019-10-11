@@ -51,4 +51,6 @@ struct {
 
   uint8_t oam_addrs;
   uint8_t oam[OAM_RAM];
+
+  uint8_t palette_ram[32];
 } ppu;
