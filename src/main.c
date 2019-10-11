@@ -38,6 +38,7 @@ void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p)
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
 
 uint8_t readCPUByte(uint16_t addrs);
+uint8_t readPPUByte(uint16_t addrs);
 
 #include "globals.c"
 #include "ppu.c"

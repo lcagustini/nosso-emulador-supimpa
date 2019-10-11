@@ -57,6 +57,18 @@
 #define GET_SPRITE_0_HIT() (ppu.status & BIT6)
 #define GET_VBLANK_START() (ppu.status & BIT7)
 
+#define GET_ATTRIBUTETABLE_ADDRS(a) ( \
+      a == 0 ? 0x23C0 : ( \
+      a == 1 ? 0x27C0 : ( \
+      a == 2 ? 0x2BC0 : 0x2FC0 )) \
+    )
+
+#define PALETTE_ID_TO_ADDRS(a) ( \
+      a == 0 ? 0x3F00 : ( \
+      a == 1 ? 0x3F04 : ( \
+      a == 2 ? 0x3F08 : 0x3F0C )) \
+    )
+
 void oamDMA(uint8_t hibyte) {
   uint16_t addrs = (hibyte << 8);
 
@@ -67,3 +79,52 @@ void oamDMA(uint8_t hibyte) {
   if (cpu.clock_cycles % 2) cpu.clock_cycles += 1;
   cpu.clock_cycles += 513;
 }
+
+void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
+
+  for (int byte = 0; byte < 8; byte++) {
+    for (int bit = 0; bit < 8; bit++) {
+      decoded_tile[byte*8 + bit] = (tile[byte] & (1 << bit)) | (tile[byte + 8] & (1 << bit)); 
+    }
+  }
+}
+
+uint8_t backgroudPixelColor(uint8_t x, uint8_t y) {
+
+  uint16_t addrs_nametable = NAMETABLE_ID_TO_ADDRS(GET_BASE_NAMETABLE_ID());
+  uint8_t tile_x = x/8;
+  uint8_t tile_y = y/8;
+  uint8_t pattern_id = readPPUByte(addrs_nametable + 32*tile_y + tile_x);
+  uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_BACKGROUND_PATTERN_TABLE_ID());
+  uint8_t tile[16];
+  uint8_t decoded_tile[64];
+
+  for (int i = 0; i < 16; i++) {
+    tile[i] = readPPUByte(addrs_patterntable + 16*pattern_id + i);
+  }
+  decodeTile(tile, decoded_tile);
+
+  uint16_t addrs_attributetable = GET_ATTRIBUTETABLE_ADDRS(GET_BASE_NAMETABLE_ID());
+  uint8_t attribute_tile_x = tile_x/4;
+  uint8_t attribute_tile_y = tile_y/4;
+  uint8_t attribute_tile = readPPUByte(addrs_attributetable + 8*attribute_tile_y + attribute_tile_x);
+  tile_x = tile_x % 4;
+  tile_y = tile_y % 4;
+
+  uint8_t palette_id;
+
+  if (tile_x < 2 && tile_y < 2) palette_id = attribute_tile & 0b11;
+  else if (tile_x >= 2 && tile_y < 2) palette_id = attribute_tile & 0b1100;
+  else if (tile_x < 2 && tile_y >= 2) palette_id = attribute_tile & 0b110000;
+  else palette_id = attribute_tile & 0b11000000;
+
+  uint16_t addrs_palette = PALETTE_ID_TO_ADDRS(palette_id);
+  x = x % 8;
+  y = y % 8;
+
+  uint8_t pixel_palette = decoded_tile[y*8 + x];
+
+  if (pixel_palette == 0) return readPPUByte(0x3F00);
+  return readPPUByte(addrs_palette + pixel_palette);
+}
+
