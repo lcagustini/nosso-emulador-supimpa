@@ -51,9 +51,9 @@
 #define GET_BLUE_FILTER() (ppu.mask & BIT7)
 #define SET_BLUE_FILTER(a) (ppu.mask = (ppu.mask & (~BIT7)) | (a & BIT0))
 
-#define GET_SPRITE_Y(a) ((ppu.oam.data[a*4+0]))
-// does not work for 8x16 sprites
-#define GET_SPRITE_TILE_NUMBER(a) ((ppu.oam.data[a*4+1]))
+// OAM
+#define GET_SPRITE_Y(a) (ppu.oam.data[a*4+0])
+#define GET_SPRITE_TILE_NUMBER(a) (ppu.oam.data[a*4+1]) // does not work for 8x16 sprites
 #define GET_SPRITE_PALETTE(a) ((ppu.oam.data[a*4+2]) & (BIT0|BIT1))
 #define GET_SPRITE_PRIORITY(a) ((ppu.oam.data[a*4+2]) & (BIT5) >> 5)
 #define GET_SPRITE_FLIP_H(a) ((ppu.oam.data[a*4+2]) & (BIT6) >> 6)
@@ -100,7 +100,6 @@ void oamDMA(uint8_t hibyte) {
 }
 
 void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
-
   for (int byte = 0; byte < 8; byte++) {
     for (int bit = 0; bit < 8; bit++) {
       decoded_tile[byte*8 + (7-bit)] = ((tile[byte] & (1 << bit)) | ((tile[byte + 8] & (1 << bit)) << 1)) >> bit;
@@ -109,7 +108,6 @@ void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
 }
 
 uint8_t backgroundPixelColorAt(uint8_t x, uint8_t y) {
-
   uint16_t addrs_nametable = NAMETABLE_ID_TO_ADDRS(GET_BASE_NAMETABLE_ID());
   uint8_t tile_x = x/8;
   uint8_t tile_y = y/8;
@@ -189,7 +187,7 @@ sprite_priority spritePixelColorAt(uint8_t x, uint8_t y, uint8_t *color) {
 
         uint8_t pixel_palette = decoded_tile[y*8 + x];
 
-        if (!pixel_palette) return SP_NO_SPRITE;
+        if (!pixel_palette) continue;
 
         *color = readPPUByte(addrs_palette + pixel_palette);
 

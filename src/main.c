@@ -171,24 +171,24 @@ reset:
     /* not final code */
     ppu.status = 0xFF; // temporary vblank simulation
     if (cpu.clock_cycles % 10000 <= 3 && cpu.clock_cycles > 100000) {
-        for (int y = 8; y < draw_surface->h; y++) {
-            for (int x = 0; x < draw_surface->w; x++) {
-                uint32_t *pixels = draw_surface->pixels;
-                uint8_t nes_palette_index = backgroundPixelColorAt(x, y);
-                uint8_t sprite_color;
-                uint8_t sprite_priority = spritePixelColorAt(x, y, &sprite_color);
-                // TODO: check priorities better
-                if (sprite_priority) {
-                    pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[sprite_color]; // ARGB
-                } else {
-                    pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[nes_palette_index]; // ARGB
-                }
-            }
+      for (int y = 8; y < draw_surface->h; y++) {
+        for (int x = 0; x < draw_surface->w; x++) {
+          uint32_t *pixels = draw_surface->pixels;
+          uint8_t nes_palette_index = backgroundPixelColorAt(x, y);
+          uint8_t sprite_color;
+          uint8_t sprite_priority = spritePixelColorAt(x, y, &sprite_color);
+          // TODO: check priorities better
+          if (sprite_priority) {
+            pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[sprite_color]; // ARGB
+          } else {
+            pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[nes_palette_index]; // ARGB
+          }
         }
-        SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
-        SDL_UpdateWindowSurface(window);
+      }
+      SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
+      SDL_UpdateWindowSurface(window);
 
-        cpu.interrupt.nmi = 1;
+      cpu.interrupt.nmi = 1;
     }
     /* end not final code */
 
