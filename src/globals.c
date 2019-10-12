@@ -54,3 +54,9 @@ struct {
 
   uint8_t palette_ram[32];
 } ppu;
+
+typedef enum {
+  SP_NO_SPRITE,
+  SP_OVER_BG,
+  SP_UNDER_BG,
+} sprite_priority;

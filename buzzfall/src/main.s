@@ -226,9 +226,9 @@ LoadPalettesLoop:
   lda #20
   sta x_player1
   sta y_player1
+  sta y_player2
   lda #230
   sta x_player2
-  sta y_player2
 
 ; Initialize animations
   lda #ANIMATION_TIMER

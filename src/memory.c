@@ -18,11 +18,13 @@ uint8_t readPPUByte(uint16_t addrs) {
 uint8_t readCPUByte(uint16_t addrs) {
   if (addrs < 0x2000) return cpu.ram[addrs % 0x800];
   
-  if (addrs >= 0x4020) return cartridge.PRG[addrs-(0x10000-cartridge.PRG_size)];
-
   if (addrs == 0x2002) return ppu.status;
   if (addrs == 0x2004) return ppu.oam[ppu.oam_addrs];
   if (addrs == 0x2007) return readPPUByte(ppu.ram_addrs);
+
+  if (addrs == 0x4016) return 0x0;
+  if (addrs == 0x4017) return 0x0;
+  if (addrs >= 0x4020) return cartridge.PRG[addrs-(0x10000-cartridge.PRG_size)];
 
   return 0;
 }
