@@ -41,6 +41,7 @@ uint8_t readCPUByte(uint16_t addrs);
 uint8_t readPPUByte(uint16_t addrs);
 
 #include "globals.c"
+#include "input.c"
 #include "ppu.c"
 #include "memory.c"
 #include "cpu.c"
@@ -159,6 +160,8 @@ reset:
         exit(0);
     }
 
+    pollInput();
+
     uint8_t opcode = getInstructionByte();
 #ifdef OPCODE_PRINT
     printf("%s ", optable[opcode]);
@@ -166,7 +169,6 @@ reset:
     doInstruction(opcode);
 
     /* not final code */
-    // TODO: handle palette mirror
     ppu.status = 0xFF; // temporary vblank simulation
     if (cpu.clock_cycles % 10000 <= 3 && cpu.clock_cycles > 100000) {
         for (int y = 8; y < draw_surface->h; y++) {

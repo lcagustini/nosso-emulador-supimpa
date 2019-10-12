@@ -1,5 +1,5 @@
 void writePPUByte(uint16_t addrs, uint8_t data){
-  if (addrs >= 0x2000 && addrs < 0x2800) ppu.ram[addrs - 0x2000] = data;
+  if (addrs >= 0x2000 && addrs < 0x2800) ppu.ram.data[addrs - 0x2000] = data;
   if (addrs >= 0x3000 && addrs < 0x3F00) writePPUByte(addrs - 0x1000, data);
   if (addrs >= 0x3F00) ppu.palette_ram[(addrs - 0x3F00) % 0x20] = data;
 }
@@ -7,23 +7,27 @@ void writePPUByte(uint16_t addrs, uint8_t data){
 uint8_t readPPUByte(uint16_t addrs) {
   if (addrs < 0x2000) return cartridge.CHR[addrs];
 
-  if (addrs < 0x2800) return ppu.ram[addrs - 0x2000];
+  if (addrs < 0x2800) return ppu.ram.data[addrs - 0x2000];
   if (addrs >= 0x3000 && addrs < 0x3F00) return readPPUByte(addrs - 0x1000);
-  
-  if (addrs >= 0x3F00) return ppu.palette_ram[(addrs - 0x3F00) % 0x20];
-  
+
+  if (addrs >= 0x3F00) {
+    addrs = (addrs - 0x3F00) % 0x20;
+    if (addrs == 0x10 || addrs == 0x14 || addrs == 0x18 || addrs == 0x1C) addrs -= 0x10;
+    return ppu.palette_ram[addrs];
+  }
+
   return 0;
 }
 
 uint8_t readCPUByte(uint16_t addrs) {
   if (addrs < 0x2000) return cpu.ram[addrs % 0x800];
-  
-  if (addrs == 0x2002) return ppu.status;
-  if (addrs == 0x2004) return ppu.oam[ppu.oam_addrs];
-  if (addrs == 0x2007) return readPPUByte(ppu.ram_addrs);
 
-  if (addrs == 0x4016) return 0x0;
-  if (addrs == 0x4017) return 0x0;
+  if (addrs == 0x2002) return ppu.status;
+  if (addrs == 0x2004) return ppu.oam.data[ppu.oam.addrs];
+  if (addrs == 0x2007) return readPPUByte(ppu.ram.addrs);
+
+  if (addrs == 0x4016) return getNextInput1();
+  if (addrs == 0x4017) return getNextInput2();
   if (addrs >= 0x4020) return cartridge.PRG[addrs-(0x10000-cartridge.PRG_size)];
 
   return 0;
@@ -34,30 +38,31 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
 
   if (addrs == 0x2000) ppu.ctrl = data;
   if (addrs == 0x2001) ppu.mask = data;
-  if (addrs == 0x2003) ppu.oam_addrs = data;
+  if (addrs == 0x2003) ppu.oam.addrs = data;
   if (addrs == 0x2004) {
-    ppu.oam[ppu.oam_addrs] = data;
-    ppu.oam_addrs++; // TODO: shouldn't happen during vblank or forced blank
+    ppu.oam.data[ppu.oam.addrs] = data;
+    ppu.oam.addrs++; // TODO: shouldn't happen during vblank or forced blank
   }
   if (addrs == 0x2005) {
-    if (ppu.scroll_write_flag) ppu.scroll_y = data;
-    else ppu.scroll_x = data;
+    if (ppu.scroll.write_flag) ppu.scroll.y = data;
+    else ppu.scroll.x = data;
 
-    ppu.scroll_write_flag = !ppu.scroll_write_flag;
+    ppu.scroll.write_flag = !ppu.scroll.write_flag;
   }
   if (addrs == 0x2006) {
-    if (ppu.ram_write_flag) ppu.ram_addrs = (ppu.ram_addrs & (~0xFF)) | data;
-    else ppu.ram_addrs = (ppu.ram_addrs & (~0xFF00)) | (data << 8);
+    if (ppu.ram.write_flag) ppu.ram.addrs = (ppu.ram.addrs & (~0xFF)) | data;
+    else ppu.ram.addrs = (ppu.ram.addrs & (~0xFF00)) | (data << 8);
 
-    ppu.scroll_y = ppu.scroll_x = 0;
+    ppu.scroll.y = ppu.scroll.x = 0;
 
-    ppu.ram_write_flag = !ppu.ram_write_flag;
+    ppu.ram.write_flag = !ppu.ram.write_flag;
   }
   if (addrs == 0x2007) {
-    writePPUByte(ppu.ram_addrs, data);
-    ppu.ram_addrs += GET_VRAM_PPU_INCREMENT() ? 32 : 1;
+    writePPUByte(ppu.ram.addrs, data);
+    ppu.ram.addrs += GET_VRAM_PPU_INCREMENT() ? 32 : 1;
   }
   if (addrs == 0x4014) oamDMA(data);
+  if (addrs == 0x4016) input.poll_enable = data;
 }
 
 uint8_t getInstructionByte() {

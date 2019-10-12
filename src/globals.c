@@ -41,19 +41,32 @@ struct {
   uint8_t mask;
   uint8_t status;
 
-  uint8_t scroll_write_flag;
-  uint8_t scroll_x;
-  uint8_t scroll_y;
+  struct {
+    bool write_flag;
+    uint8_t x;
+    uint8_t y;
+  } scroll;
 
-  uint8_t ram_write_flag;
-  uint16_t ram_addrs;
-  uint8_t ram[PPU_RAM];
+  struct {
+    bool write_flag;
+    uint16_t addrs;
+    uint8_t data[PPU_RAM];
+  } ram;
 
-  uint8_t oam_addrs;
-  uint8_t oam[OAM_RAM];
+  struct {
+    uint8_t addrs;
+    uint8_t data[OAM_RAM];
+  } oam;
 
   uint8_t palette_ram[32];
 } ppu;
+
+struct {
+  bool poll_enable;
+
+  uint8_t shift_register1;
+  uint8_t shift_register2;
+} input;
 
 typedef enum {
   SP_NO_SPRITE,

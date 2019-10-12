@@ -51,16 +51,14 @@
 #define GET_BLUE_FILTER() (ppu.mask & BIT7)
 #define SET_BLUE_FILTER(a) (ppu.mask = (ppu.mask & (~BIT7)) | (a & BIT0))
 
-#define GET_SPRITE_Y(a) ((ppu.oam[a*4+0]))
+#define GET_SPRITE_Y(a) ((ppu.oam.data[a*4+0]))
 // does not work for 8x16 sprites
-#define GET_SPRITE_TILE_NUMBER(a) ((ppu.oam[a*4+1]))
-#define GET_SPRITE_PALETTE(a) ((ppu.oam[a*4+2]) & (BIT0|BIT1))
-#define GET_SPRITE_PRIORITY(a) ((ppu.oam[a*4+2]) & (BIT5) >> 5)
-#define GET_SPRITE_FLIP_H(a) ((ppu.oam[a*4+2]) & (BIT6) >> 6)
-#define GET_SPRITE_FLIP_V(a) ((ppu.oam[a*4+2]) & (BIT7) >> 7)
-#define GET_SPRITE_X(a) ((ppu.oam[a*4+3]))
-
-
+#define GET_SPRITE_TILE_NUMBER(a) ((ppu.oam.data[a*4+1]))
+#define GET_SPRITE_PALETTE(a) ((ppu.oam.data[a*4+2]) & (BIT0|BIT1))
+#define GET_SPRITE_PRIORITY(a) ((ppu.oam.data[a*4+2]) & (BIT5) >> 5)
+#define GET_SPRITE_FLIP_H(a) ((ppu.oam.data[a*4+2]) & (BIT6) >> 6)
+#define GET_SPRITE_FLIP_V(a) ((ppu.oam.data[a*4+2]) & (BIT7) >> 7)
+#define GET_SPRITE_X(a) ((ppu.oam.data[a*4+3]))
 
 // PPUSTATUS
 // TODO: Implement the 5 least significant bits
@@ -89,10 +87,10 @@
 void oamDMA(uint8_t hibyte) {
   uint16_t addrs = (hibyte << 8);
 
-  for (int i = 0; ; i++, ppu.oam_addrs++) {
-    ppu.oam[ppu.oam_addrs] = readCPUByte(addrs + i);
-    if (ppu.oam_addrs == 0xFF) {
-        ppu.oam_addrs = 0;
+  for (int i = 0; ; i++, ppu.oam.addrs++) {
+    ppu.oam.data[ppu.oam.addrs] = readCPUByte(addrs + i);
+    if (ppu.oam.addrs == 0xFF) {
+        ppu.oam.addrs = 0;
         break;
     }
   }
@@ -105,7 +103,7 @@ void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
 
   for (int byte = 0; byte < 8; byte++) {
     for (int bit = 0; bit < 8; bit++) {
-      decoded_tile[byte*8 + (7-bit)] = ((tile[byte] & (1 << bit)) | ((tile[byte + 8] & (1 << bit)) << 1)) >> bit; 
+      decoded_tile[byte*8 + (7-bit)] = ((tile[byte] & (1 << bit)) | ((tile[byte + 8] & (1 << bit)) << 1)) >> bit;
     }
   }
 }
@@ -169,7 +167,7 @@ sprite_priority spritePixelColorAt(uint8_t x, uint8_t y, uint8_t *color) {
     uint8_t priority = GET_SPRITE_PRIORITY(i);
     uint8_t flip_h = GET_SPRITE_FLIP_H(i);
     uint8_t flip_v = GET_SPRITE_FLIP_V(i);
-    
+
     if (x >= sprite_x && x < sprite_x + 8 &&
         y >= sprite_y && y < sprite_y + 8) {
 
@@ -186,7 +184,12 @@ sprite_priority spritePixelColorAt(uint8_t x, uint8_t y, uint8_t *color) {
         x = x - sprite_x;
         y = y - sprite_y;
 
+        //if (flip_v) y = 7 - y;
+        //if (flip_h) x = 7 - x;
+
         uint8_t pixel_palette = decoded_tile[y*8 + x];
+
+        if (!pixel_palette) return SP_NO_SPRITE;
 
         *color = readPPUByte(addrs_palette + pixel_palette);
 
@@ -194,5 +197,5 @@ sprite_priority spritePixelColorAt(uint8_t x, uint8_t y, uint8_t *color) {
     }
   }
 
-  return SP_NO_SPRITE; 
+  return SP_NO_SPRITE;
 }
