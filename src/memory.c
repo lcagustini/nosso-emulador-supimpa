@@ -24,9 +24,12 @@ uint8_t readCPUByte(uint16_t addrs) {
 
   if (addrs == 0x2002) {
     uint8_t ppu_old = ppu.status;
+    // TODO: stop counting internal reads as program reads
+#if 0
     ppu.status &= ~BIT7;
     ppu.scroll.x = ppu.scroll.y = 0;
     ppu.ram.addrs = 0;
+#endif
 
     return ppu_old;
   }

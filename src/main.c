@@ -167,10 +167,13 @@ reset:
     printf("%s ", optable[opcode]);
 #endif
     doInstruction(opcode);
+    checkForInterrupts();
 
     while (cpu.clock_cycles >= 3) {
+        //printf("%d\n", cpu.clock_cycles);
 
-        if (ppu.draw.x < 256 && ppu.draw.y < 240){
+        if (ppu.draw.x < 256 && ppu.draw.y < 224){ // TODO; we should also set BIT6 of ppu.status for first and last line of screen
+#if 0
           uint32_t *pixels = draw_surface->pixels;
           uint16_t addrs_palette;
           uint8_t sprite_palette;
@@ -190,6 +193,7 @@ reset:
           } else {
             pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
           }
+#endif
 
           cpu.clock_cycles -= 3;
       }
@@ -208,16 +212,24 @@ reset:
       }
 
       if (ppu.draw.x == 0 && ppu.draw.y == 241) {
-        ppu.status = BIT7;
+          puts("asdasdasd");
+        ppu.status |= BIT7;
 
+#if 0
         SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
         SDL_UpdateWindowSurface(window);
+#endif
+      }
+      if (ppu.draw.x == 1 && ppu.draw.y == 241) { // TODO: check if we should really unset it on this pixel
+        ppu.status &= ~BIT7;
       }
 
       ppu.draw.x += 1;
     }
 
     if ((ppu.status & BIT7) && (ppu.ctrl & BIT7)) cpu.interrupt.nmi = true;
+
+    //puts("ta tudo bem");
 
 #if 0
     /* not final code */
@@ -252,8 +264,6 @@ reset:
     }
     /* end not final code */
 #endif
-
-    checkForInterrupts();
   }
 
   free(cartridge.PRG);
