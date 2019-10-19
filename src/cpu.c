@@ -2545,9 +2545,7 @@ void doInstruction(uint8_t opcode) {
       }
       break;
     default:
-#ifdef DEBUG_PRINT
       fprintf(stderr, COLOR_RED "Unimplemented OP Code: 0x%02X\n", opcode);
-#endif
       exit(1);
   }
 }

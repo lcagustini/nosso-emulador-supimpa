@@ -58,7 +58,13 @@ struct {
     uint8_t data[OAM_RAM];
   } oam;
 
+  struct {
+    uint16_t x;
+    uint16_t y;
+  } draw;
+
   uint8_t palette_ram[32];
+
 } ppu;
 
 struct {
@@ -69,7 +75,7 @@ struct {
 } input;
 
 typedef enum {
-  SP_NO_SPRITE,
-  SP_OVER_BG,
-  SP_UNDER_BG,
-} sprite_priority;
+  P_NO_SPRITE,
+  P_OVER_BG,
+  P_UNDER_BG,
+} priority_t;

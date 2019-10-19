@@ -22,7 +22,14 @@ uint8_t readPPUByte(uint16_t addrs) {
 uint8_t readCPUByte(uint16_t addrs) {
   if (addrs < 0x2000) return cpu.ram[addrs % 0x800];
 
-  if (addrs == 0x2002) return ppu.status;
+  if (addrs == 0x2002) {
+    uint8_t ppu_old = ppu.status;
+    ppu.status &= ~BIT7;
+    ppu.scroll.x = ppu.scroll.y = 0;
+    ppu.ram.addrs = 0;
+
+    return ppu_old;
+  }
   if (addrs == 0x2004) return ppu.oam.data[ppu.oam.addrs];
   if (addrs == 0x2007) return readPPUByte(ppu.ram.addrs);
 

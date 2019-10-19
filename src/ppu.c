@@ -107,7 +107,7 @@ void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
   }
 }
 
-uint8_t backgroundPixelColorAt(uint8_t x, uint8_t y) {
+void backgroundPaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
   uint16_t addrs_nametable = NAMETABLE_ID_TO_ADDRS(GET_BASE_NAMETABLE_ID());
   uint8_t tile_x = x/8;
   uint8_t tile_y = y/8;
@@ -145,17 +145,19 @@ uint8_t backgroundPixelColorAt(uint8_t x, uint8_t y) {
   else if (tile_x < 2 && tile_y >= 2) palette_id = attribute_tile & 0b110000;
   else palette_id = attribute_tile & 0b11000000;
 
-  uint16_t addrs_palette = BACKGROUND_PALETTE_ID_TO_ADDRS(palette_id);
+  *addrs_palette = BACKGROUND_PALETTE_ID_TO_ADDRS(palette_id);
   x = x % 8;
   y = y % 8;
 
-  uint8_t pixel_palette = decoded_tile[y*8 + x];
+  *pixel_palette = decoded_tile[y*8 + x];
+}
 
+uint8_t backgroundPaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_palette) {
   if (pixel_palette == 0) return readPPUByte(0x3F00);
   return readPPUByte(addrs_palette + pixel_palette);
 }
 
-sprite_priority spritePixelColorAt(uint8_t x, uint8_t y, uint8_t *color) {
+priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
   // TODO: 8x16 sprites
   for (int i = 0; i < 64; i++) {
     uint8_t sprite_x = GET_SPRITE_X(i);
@@ -178,22 +180,24 @@ sprite_priority spritePixelColorAt(uint8_t x, uint8_t y, uint8_t *color) {
         }
         decodeTile(tile, decoded_tile);
 
-        uint16_t addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
+        *addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
         x = x - sprite_x;
         y = y - sprite_y;
 
         //if (flip_v) y = 7 - y;
         //if (flip_h) x = 7 - x;
 
-        uint8_t pixel_palette = decoded_tile[y*8 + x];
+        *pixel_palette = decoded_tile[y*8 + x];
 
-        if (!pixel_palette) continue;
-
-        *color = readPPUByte(addrs_palette + pixel_palette);
+        if (!*pixel_palette) continue;
 
         return priority + 1; // based on sprite_priority enum
     }
   }
 
-  return SP_NO_SPRITE;
+  return P_NO_SPRITE;
+}
+
+uint8_t spritePaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_palette) {
+  return readPPUByte(addrs_palette + pixel_palette);
 }

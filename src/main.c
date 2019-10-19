@@ -168,20 +168,80 @@ reset:
 #endif
     doInstruction(opcode);
 
+    while (cpu.clock_cycles >= 3) {
+
+        if (ppu.draw.x < 256 && ppu.draw.y < 240){
+          uint32_t *pixels = draw_surface->pixels;
+          uint16_t addrs_palette;
+          uint8_t sprite_palette;
+          uint8_t backgroud_palette;
+
+          backgroundPaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &backgroud_palette);
+          uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
+
+          priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette);
+          uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
+
+          if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
+          // TODO: check priorities better
+          // TODO: we have to skip the first tile line
+          if (sprite_priority) {
+            pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
+          } else {
+            pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
+          }
+
+          cpu.clock_cycles -= 3;
+      }
+      else if (ppu.draw.x > 339) {
+        ppu.draw.x = 0;
+        ppu.draw.y += 1;
+        continue;
+      }
+      else {
+        cpu.clock_cycles -= 3;
+      }
+
+      if (ppu.draw.y > 261) {
+        ppu.draw.y = 0;
+        ppu.status = 0;
+      }
+
+      if (ppu.draw.x == 0 && ppu.draw.y == 241) {
+        ppu.status = BIT7;
+
+        SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
+        SDL_UpdateWindowSurface(window);
+      }
+
+      ppu.draw.x += 1;
+    }
+
+    if ((ppu.status & BIT7) && (ppu.ctrl & BIT7)) cpu.interrupt.nmi = true;
+
+#if 0
     /* not final code */
-    ppu.status = 0xFF; // temporary vblank simulation
+    ppu.status = BIT7; // temporary vblank simulation
     if (cpu.clock_cycles % 10000 <= 3 && cpu.clock_cycles > 100000) {
       for (int y = 8; y < draw_surface->h; y++) {
         for (int x = 0; x < draw_surface->w; x++) {
           uint32_t *pixels = draw_surface->pixels;
-          uint8_t nes_palette_index = backgroundPixelColorAt(x, y);
-          uint8_t sprite_color;
-          uint8_t sprite_priority = spritePixelColorAt(x, y, &sprite_color);
+          uint16_t addrs_palette;
+          uint8_t sprite_palette;
+          uint8_t backgroud_palette;
+
+          backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
+          uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
+
+          priority_t sprite_priority = spritePaletteIndexAt(x, y, &addrs_palette, &sprite_palette);
+          uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
+
+          if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
           // TODO: check priorities better
           if (sprite_priority) {
             pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[sprite_color]; // ARGB
           } else {
-            pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[nes_palette_index]; // ARGB
+            pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[backgroud_color]; // ARGB
           }
         }
       }
@@ -191,6 +251,7 @@ reset:
       cpu.interrupt.nmi = 1;
     }
     /* end not final code */
+#endif
 
     checkForInterrupts();
   }
@@ -201,5 +262,6 @@ reset:
   SDL_DestroyWindow(window);
   SDL_Quit();
 
+  puts("fechou mano!!!!!");
   return 0;
 }
