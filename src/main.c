@@ -169,8 +169,7 @@ reset:
 
     while (cpu.clock_cycles >= 3) {
       //printf("%d\n", cpu.clock_cycles);
-
-      if (ppu.draw.x < 256 && ppu.draw.y < 224){ // TODO; we should also set BIT6 of ppu.status for first and last line of screen
+      if (ppu.draw.x < 256 && ppu.draw.y >= 8 && ppu.draw.y < 232){ // TODO; we should also set BIT6 of ppu.status for first and last line of screen
         uint32_t *pixels = draw_surface->pixels;
         uint16_t addrs_palette;
         uint8_t sprite_palette;
@@ -186,9 +185,9 @@ reset:
         // TODO: check priorities better
         // TODO: we have to skip the first tile line
         if (sprite_priority) {
-          pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
+          pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
         } else {
-          pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
+          pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
         }
 
         cpu.clock_cycles -= 3;
