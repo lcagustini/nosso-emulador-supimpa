@@ -79,3 +79,11 @@ typedef enum {
   P_OVER_BG,
   P_UNDER_BG,
 } priority_t;
+
+// NOTE: currently only updated once per frame, not instantly as it should be
+//       this is because SDL is too slow (at least on my PC)
+const uint8_t *input_state;
+
+// NOTE: currently we sleep too much sometimes because of system related stuff
+//       not sure what to do about it
+struct timeval last_frame_time;

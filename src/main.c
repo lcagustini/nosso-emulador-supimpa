@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <assert.h>
+#include <unistd.h>
 
 #define bool uint8_t
 #define true 1
@@ -154,12 +156,8 @@ int main(int argc, char* argv[]) {
 
 reset:
   cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
+  gettimeofday(&last_frame_time, NULL);
   while (true) {
-    while(SDL_PollEvent(&e)){
-      if(e.type == SDL_QUIT)
-        exit(0);
-    }
-
     pollInput();
 
     uint8_t opcode = getInstructionByte();
@@ -170,32 +168,30 @@ reset:
     checkForInterrupts();
 
     while (cpu.clock_cycles >= 3) {
-        //printf("%d\n", cpu.clock_cycles);
+      //printf("%d\n", cpu.clock_cycles);
 
-        if (ppu.draw.x < 256 && ppu.draw.y < 224){ // TODO; we should also set BIT6 of ppu.status for first and last line of screen
-#if 0
-          uint32_t *pixels = draw_surface->pixels;
-          uint16_t addrs_palette;
-          uint8_t sprite_palette;
-          uint8_t backgroud_palette;
+      if (ppu.draw.x < 256 && ppu.draw.y < 224){ // TODO; we should also set BIT6 of ppu.status for first and last line of screen
+        uint32_t *pixels = draw_surface->pixels;
+        uint16_t addrs_palette;
+        uint8_t sprite_palette;
+        uint8_t backgroud_palette;
 
-          backgroundPaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &backgroud_palette);
-          uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
+        backgroundPaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &backgroud_palette);
+        uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
 
-          priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette);
-          uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
+        priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette);
+        uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
 
-          if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
-          // TODO: check priorities better
-          // TODO: we have to skip the first tile line
-          if (sprite_priority) {
-            pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
-          } else {
-            pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
-          }
-#endif
+        if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
+        // TODO: check priorities better
+        // TODO: we have to skip the first tile line
+        if (sprite_priority) {
+          pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
+        } else {
+          pixels[ppu.draw.y*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
+        }
 
-          cpu.clock_cycles -= 3;
+        cpu.clock_cycles -= 3;
       }
       else if (ppu.draw.x > 339) {
         ppu.draw.x = 0;
@@ -211,14 +207,42 @@ reset:
         ppu.status = 0;
       }
 
-      if (ppu.draw.x == 0 && ppu.draw.y == 241) {
-          puts("asdasdasd");
+      //printf("x: %d, y: %d\n", ppu.draw.x, ppu.draw.y);
+      if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame
         ppu.status |= BIT7;
 
-#if 0
+        // update inputs
+        while(SDL_PollEvent(&e)){
+          if(e.type == SDL_QUIT) exit(0);
+        }
+        input_state = SDL_GetKeyboardState(NULL);
+
+        // sleep remaining time if we're too fast
+        {
+          struct timeval t;
+          gettimeofday(&t, NULL);
+          long int diff_usec = 0;
+          if (t.tv_sec > last_frame_time.tv_sec) { // this does not work for more than 1 second per frame
+            assert(t.tv_sec == last_frame_time.tv_sec+1);
+            diff_usec += t.tv_usec;
+            diff_usec += 1000000 - last_frame_time.tv_usec;
+          } else {
+            assert(t.tv_sec == last_frame_time.tv_sec);
+            diff_usec += t.tv_usec - last_frame_time.tv_usec;
+          }
+          last_frame_time = t;
+
+          float target_usec_per_frame = (1/60.0f) * 1000000.0f;
+          float sleep_time = target_usec_per_frame - (float) diff_usec;
+          printf("diff_usec:%lf, target_usec_per_frame: %lf, sleep_time: %lf\n", (float)diff_usec, target_usec_per_frame, sleep_time);
+          if (sleep_time > 0) {
+            usleep(sleep_time);
+          }
+        }
+
+        // draw frame
         SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
         SDL_UpdateWindowSurface(window);
-#endif
       }
       if (ppu.draw.x == 1 && ppu.draw.y == 241) { // TODO: check if we should really unset it on this pixel
         ppu.status &= ~BIT7;
@@ -228,42 +252,6 @@ reset:
     }
 
     if ((ppu.status & BIT7) && (ppu.ctrl & BIT7)) cpu.interrupt.nmi = true;
-
-    //puts("ta tudo bem");
-
-#if 0
-    /* not final code */
-    ppu.status = BIT7; // temporary vblank simulation
-    if (cpu.clock_cycles % 10000 <= 3 && cpu.clock_cycles > 100000) {
-      for (int y = 8; y < draw_surface->h; y++) {
-        for (int x = 0; x < draw_surface->w; x++) {
-          uint32_t *pixels = draw_surface->pixels;
-          uint16_t addrs_palette;
-          uint8_t sprite_palette;
-          uint8_t backgroud_palette;
-
-          backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
-          uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
-
-          priority_t sprite_priority = spritePaletteIndexAt(x, y, &addrs_palette, &sprite_palette);
-          uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
-
-          if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
-          // TODO: check priorities better
-          if (sprite_priority) {
-            pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[sprite_color]; // ARGB
-          } else {
-            pixels[(y-8)*draw_surface->w + x] = 0xFF000000 | nes_palette[backgroud_color]; // ARGB
-          }
-        }
-      }
-      SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
-      SDL_UpdateWindowSurface(window);
-
-      cpu.interrupt.nmi = 1;
-    }
-    /* end not final code */
-#endif
   }
 
   free(cartridge.PRG);
