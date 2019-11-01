@@ -35,6 +35,7 @@ uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
   }
   if (addrs == 0x2004) return ppu.oam.data[ppu.oam.addrs];
   if (addrs == 0x2007) return readPPUByte(ppu.ram.addrs);
+  if (addrs >= 0x2008 && addrs < 0x4000) readCPUByte(0x2000 + (addrs % 8), internal_read);
 
   if (addrs == 0x4016) return internal_read ? 0 : getNextInput1();
   if (addrs == 0x4017) return internal_read ? 0 : getNextInput2();

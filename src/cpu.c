@@ -1065,7 +1065,6 @@ void doInstruction(uint8_t opcode) {
 
         cpu.clock_cycles += 2;
 
-
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
 #endif
