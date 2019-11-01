@@ -33,8 +33,8 @@ uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
 
     return ppu_old;
   }
-  if (addrs == 0x2004) return ppu.oam.data[ppu.oam.addrs];
-  if (addrs == 0x2007) return readPPUByte(ppu.ram.addrs);
+  if (addrs == 0x2004) return internal_read ? ppu.oam.data[ppu.oam.addrs] : ppu.oam.data[ppu.oam.addrs++];
+  if (addrs == 0x2007) return internal_read ? readPPUByte(ppu.ram.addrs) : readPPUByte(ppu.ram.addrs++);
   if (addrs >= 0x2008 && addrs < 0x4000) readCPUByte(0x2000 + (addrs % 8), internal_read);
 
   if (addrs == 0x4016) return internal_read ? 0 : getNextInput1();
