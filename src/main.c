@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
   SDL_Surface *draw_surface = SDL_CreateRGBSurface(0, NES_WIDTH, NES_HEIGHT,
       screen_surface->format->BitsPerPixel,
       screen_surface->format->Rmask, screen_surface->format->Gmask,
-      screen_surface->format->Bmask, screen_surface->format->Amask);
+      screen_surface->format->Bmask, 0);
   SDL_Event e;
 
   if (argc <= 1) {
