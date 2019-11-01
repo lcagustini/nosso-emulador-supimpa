@@ -201,3 +201,119 @@ priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, u
 uint8_t spritePaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_palette) {
   return readPPUByte(addrs_palette + pixel_palette);
 }
+
+void drawTVScreenPixel(SDL_Surface *draw_surface) {
+  uint16_t x = ppu.draw.x + ppu.scroll.x;
+  uint16_t y = ppu.draw.y + ppu.scroll.y;
+
+  uint32_t *pixels = draw_surface->pixels;
+  uint16_t addrs_palette;
+  uint8_t sprite_palette;
+  uint8_t backgroud_palette;
+
+  backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
+  uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
+
+  priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette);
+  uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
+
+  if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
+  if (sprite_priority == P_OVER_BG || (sprite_priority == P_UNDER_BG && !backgroud_palette)) {
+    pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
+  }
+  else {
+    pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
+  }
+}
+
+void vblank(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_surface) {
+  ppu.status |= BIT7;
+
+  // update inputs
+  SDL_Event e;
+  while(SDL_PollEvent(&e)){
+    if(e.type == SDL_QUIT) exit(0);
+  }
+  input_state = SDL_GetKeyboardState(NULL);
+
+  // sleep remaining time if we're too fast
+  // TODO: try for-based sleep
+  {
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    long int diff_usec = 0;
+    if (t.tv_sec > last_frame_time.tv_sec) { // this does not work for more than 1 second per frame
+      assert(t.tv_sec == last_frame_time.tv_sec+1);
+      diff_usec += t.tv_usec;
+      diff_usec += 1000000 - last_frame_time.tv_usec;
+    } else {
+      assert(t.tv_sec == last_frame_time.tv_sec);
+      diff_usec += t.tv_usec - last_frame_time.tv_usec;
+    }
+    last_frame_time = t;
+
+    float target_usec_per_frame = (1/60.0f) * 1000000.0f;
+    float sleep_time = target_usec_per_frame - (float) diff_usec;
+    if (sleep_time > 0) {
+      usleep(sleep_time);
+    }
+  }
+
+  // draw frame
+  SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
+
+#ifdef PPU_CHR_PRINT
+  for (int tile = 0; tile < 256; tile++) {
+    int tx = 8*(tile % (WINDOW_ZOOM*20));
+    int ty = 8*(tile / (WINDOW_ZOOM*20));
+    uint32_t *pixels = screen_surface->pixels;
+
+    for (int iy = 0; iy < 8; iy++) {
+      for (int ix = 0; ix < 8; ix++) {
+        int x = tx + ix;
+        int y = ty + iy;
+
+        uint16_t addrs_palette;
+        uint8_t backgroud_palette;
+
+        backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
+        uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
+
+        pixels[y*screen_surface->w + x] = nes_palette[backgroud_color]; // ARGB
+      }
+    }
+  }
+#endif
+
+  SDL_UpdateWindowSurface(window);
+}
+
+void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_surface) {
+  while (cpu.clock_cycles >= 3) {
+    if (ppu.draw.x < 256 && ppu.draw.y >= 8 && ppu.draw.y < 232) {
+      drawTVScreenPixel(draw_surface);
+    }
+    else if (ppu.draw.x > 339) { // end of line, wrap
+      ppu.draw.x = 0;
+      ppu.draw.y += 1;
+      continue;
+    }
+    cpu.clock_cycles -= 3;
+
+    if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame, vblank
+      vblank(window, draw_surface, screen_surface);
+    }
+
+    if (ppu.draw.x == 1 && ppu.draw.y == 241) { // first pixel after vblank
+      ppu.status &= ~BIT7;
+    }
+
+    if (ppu.draw.y > 261) { // end of screen, wrap
+      assert(!ppu.draw.x);
+      ppu.draw.y = 0;
+      ppu.status = 0;
+    } else {
+      ppu.draw.x += 1;
+    }
+  }
+}

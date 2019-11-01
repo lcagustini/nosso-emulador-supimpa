@@ -44,6 +44,18 @@ void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t 
 uint8_t readCPUByte(uint16_t addrs, bool internal_read);
 uint8_t readPPUByte(uint16_t addrs);
 
+const int nes_palette[64] = {
+  0x7C7C7C, 0x0000FC, 0x0000BC, 0x4428BC, 0x940084, 0xA80020, 0xA81000, 0x881400,
+  0x503000, 0x007800, 0x006800, 0x005800, 0x004058, 0x000000, 0x000000, 0x000000,
+  0xBCBCBC, 0x0078F8, 0x0058F8, 0x6844FC, 0xD800CC, 0xE40058, 0xF83800, 0xE45C10,
+  0xAC7C00, 0x00B800, 0x00A800, 0x00A844, 0x008888, 0x000000, 0x000000, 0x000000,
+  0xF8F8F8, 0x3CBCFC, 0x6888FC, 0x9878F8, 0xF878F8, 0xF85898, 0xF87858, 0xFCA044,
+  0xF8B800, 0xB8F818, 0x58D854, 0x58F898, 0x00E8D8, 0x787878, 0x000000, 0x000000,
+  0xFCFCFC, 0xA4E4FC, 0xB8B8F8, 0xD8B8F8, 0xF8B8F8, 0xF8A4C0, 0xF0D0B0, 0xFCE0A8,
+  0xF8D878, 0xD8F878, 0xB8F8B8, 0xB8F8D8, 0x00FCFC, 0xF8D8F8, 0x000000, 0x000000,
+};
+
+
 #include "globals.c"
 #include "input.c"
 #include "ppu.c"
@@ -72,17 +84,6 @@ static char optable[256][256] = {
   /* F */      "beq",  "sbc",  "nop",  "isb",  "nop",  "sbc",  "inc",  "isb",  "sed",  "sbc",  "nop",  "isb",  "nop",  "sbc",  "inc",  "isb  "/* F */
 };
 #endif
-
-const int nes_palette[64] = {
-  0x7C7C7C, 0x0000FC, 0x0000BC, 0x4428BC, 0x940084, 0xA80020, 0xA81000, 0x881400,
-  0x503000, 0x007800, 0x006800, 0x005800, 0x004058, 0x000000, 0x000000, 0x000000,
-  0xBCBCBC, 0x0078F8, 0x0058F8, 0x6844FC, 0xD800CC, 0xE40058, 0xF83800, 0xE45C10,
-  0xAC7C00, 0x00B800, 0x00A800, 0x00A844, 0x008888, 0x000000, 0x000000, 0x000000,
-  0xF8F8F8, 0x3CBCFC, 0x6888FC, 0x9878F8, 0xF878F8, 0xF85898, 0xF87858, 0xFCA044,
-  0xF8B800, 0xB8F818, 0x58D854, 0x58F898, 0x00E8D8, 0x787878, 0x000000, 0x000000,
-  0xFCFCFC, 0xA4E4FC, 0xB8B8F8, 0xD8B8F8, 0xF8B8F8, 0xF8A4C0, 0xF0D0B0, 0xFCE0A8,
-  0xF8D878, 0xD8F878, 0xB8F8B8, 0xB8F8D8, 0x00FCFC, 0xF8D8F8, 0x000000, 0x000000,
-};
 
 void loadNESFile(char *filepath) {
   uint8_t null_buffer[512];
@@ -144,7 +145,6 @@ int main(int argc, char* argv[]) {
       screen_surface->format->BitsPerPixel,
       screen_surface->format->Rmask, screen_surface->format->Gmask,
       screen_surface->format->Bmask, 0);
-  SDL_Event e;
 
   if (argc <= 1) {
     fprintf(stderr, COLOR_RED "Rom file needed!\n");
@@ -168,115 +168,7 @@ reset:
 #endif
     doInstruction(opcode);
     checkForInterrupts();
-
-    while (cpu.clock_cycles >= 3) {
-      //printf("%d\n", cpu.clock_cycles);
-      if (ppu.draw.x < 256 && ppu.draw.y >= 8 && ppu.draw.y < 232) { // TODO; we should also set BIT6 of ppu.status for first and last line of screen
-        uint16_t x = ppu.draw.x + ppu.scroll.x;
-        uint16_t y = ppu.draw.y + ppu.scroll.y;
-
-        uint32_t *pixels = draw_surface->pixels;
-        uint16_t addrs_palette;
-        uint8_t sprite_palette;
-        uint8_t backgroud_palette;
-
-        backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
-        uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
-
-        priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette);
-        uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
-
-        if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
-        // TODO: check priorities better
-        if (sprite_priority) {
-          pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
-        }
-        else {
-          pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
-        }
-
-        cpu.clock_cycles -= 3;
-      }
-      else if (ppu.draw.x > 339) {
-        ppu.draw.x = 0;
-        ppu.draw.y += 1;
-
-        continue;
-      }
-      else {
-        cpu.clock_cycles -= 3;
-      }
-
-      if (ppu.draw.y > 261) {
-        ppu.draw.y = 0;
-        ppu.status = 0;
-      }
-
-      if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame
-        ppu.status |= BIT7;
-
-        // update inputs
-        while(SDL_PollEvent(&e)){
-          if(e.type == SDL_QUIT) exit(0);
-        }
-        input_state = SDL_GetKeyboardState(NULL);
-
-        // sleep remaining time if we're too fast
-        {
-          struct timeval t;
-          gettimeofday(&t, NULL);
-          long int diff_usec = 0;
-          if (t.tv_sec > last_frame_time.tv_sec) { // this does not work for more than 1 second per frame
-            assert(t.tv_sec == last_frame_time.tv_sec+1);
-            diff_usec += t.tv_usec;
-            diff_usec += 1000000 - last_frame_time.tv_usec;
-          } else {
-            assert(t.tv_sec == last_frame_time.tv_sec);
-            diff_usec += t.tv_usec - last_frame_time.tv_usec;
-          }
-          last_frame_time = t;
-
-          float target_usec_per_frame = (1/60.0f) * 1000000.0f;
-          float sleep_time = target_usec_per_frame - (float) diff_usec;
-          if (sleep_time > 0) {
-            usleep(sleep_time);
-          }
-        }
-
-        // draw frame
-        SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
-
-#ifdef PPU_CHR_PRINT
-        for (int tile = 0; tile < 256; tile++) {
-          int tx = 8*(tile % (WINDOW_ZOOM*20));
-          int ty = 8*(tile / (WINDOW_ZOOM*20));
-          uint32_t *pixels = screen_surface->pixels;
-
-          for (int iy = 0; iy < 8; iy++) {
-            for (int ix = 0; ix < 8; ix++) {
-              int x = tx + ix;
-              int y = ty + iy;
-
-              uint16_t addrs_palette;
-              uint8_t backgroud_palette;
-
-              backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
-              uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
-
-              pixels[y*screen_surface->w + x] = nes_palette[backgroud_color]; // ARGB
-            }
-          }
-        }
-#endif
-
-        SDL_UpdateWindowSurface(window);
-      }
-      if (ppu.draw.x == 1 && ppu.draw.y == 241) { // TODO: check if we should really unset it on this pixel
-        ppu.status &= ~BIT7;
-      }
-
-      ppu.draw.x += 1;
-    }
+    draw(window, draw_surface, screen_surface);
 
     if ((ppu.status & BIT7) && (ppu.ctrl & BIT7)) cpu.interrupt.nmi = true;
   }
