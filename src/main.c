@@ -172,12 +172,15 @@ reset:
     while (cpu.clock_cycles >= 3) {
       //printf("%d\n", cpu.clock_cycles);
       if (ppu.draw.x < 256 && ppu.draw.y >= 8 && ppu.draw.y < 232) { // TODO; we should also set BIT6 of ppu.status for first and last line of screen
+        uint16_t x = ppu.draw.x + ppu.scroll.x;
+        uint16_t y = ppu.draw.y + ppu.scroll.y;
+
         uint32_t *pixels = draw_surface->pixels;
         uint16_t addrs_palette;
         uint8_t sprite_palette;
         uint8_t backgroud_palette;
 
-        backgroundPaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &backgroud_palette);
+        backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
         uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
 
         priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette);
