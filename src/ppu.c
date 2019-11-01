@@ -2,10 +2,10 @@
 #define GET_BASE_NAMETABLE_ID() (ppu.ctrl & 0b11)
 #define SET_BASE_NAMETABLE_ID(a) (ppu.ctrl = (ppu.ctrl & (~0b11)) | (a & 0b11))
 #define NAMETABLE_ID_TO_ADDRS(a) ( \
-      a == 0 ? 0x2000 : ( \
-      a == 1 ? 0x2400 : ( \
-      a == 2 ? 0x2800 : 0x2C00 )) \
-    )
+    a == 0 ? 0x2000 : ( \
+    a == 1 ? 0x2400 : ( \
+    a == 2 ? 0x2800 : 0x2C00 )) \
+  )
 
 #define GET_VRAM_PPU_INCREMENT() (ppu.ctrl & BIT2)
 #define SET_VRAM_PPU_INCREMENT(a) (ppu.ctrl = (ppu.ctrl & (~BIT2)) | (a & BIT0))
@@ -55,9 +55,9 @@
 #define GET_SPRITE_Y(a) (ppu.oam.data[a*4+0])
 #define GET_SPRITE_TILE_NUMBER(a) (ppu.oam.data[a*4+1]) // does not work for 8x16 sprites
 #define GET_SPRITE_PALETTE(a) ((ppu.oam.data[a*4+2]) & (BIT0|BIT1))
-#define GET_SPRITE_PRIORITY(a) ((ppu.oam.data[a*4+2]) & (BIT5) >> 5)
-#define GET_SPRITE_FLIP_H(a) ((ppu.oam.data[a*4+2]) & (BIT6) >> 6)
-#define GET_SPRITE_FLIP_V(a) ((ppu.oam.data[a*4+2]) & (BIT7) >> 7)
+#define GET_SPRITE_PRIORITY(a) (((ppu.oam.data[a*4+2]) & (BIT5)) >> 5)
+#define GET_SPRITE_FLIP_H(a) (((ppu.oam.data[a*4+2]) & (BIT6)) >> 6)
+#define GET_SPRITE_FLIP_V(a) (((ppu.oam.data[a*4+2]) & (BIT7)) >> 7)
 #define GET_SPRITE_X(a) ((ppu.oam.data[a*4+3]))
 
 // PPUSTATUS
@@ -67,31 +67,31 @@
 #define GET_VBLANK_START() (ppu.status & BIT7)
 
 #define GET_ATTRIBUTETABLE_ADDRS(a) ( \
-      a == 0 ? 0x23C0 : ( \
-      a == 1 ? 0x27C0 : ( \
-      a == 2 ? 0x2BC0 : 0x2FC0 )) \
-    )
+    a == 0 ? 0x23C0 : ( \
+    a == 1 ? 0x27C0 : ( \
+    a == 2 ? 0x2BC0 : 0x2FC0 )) \
+  )
 
 #define BACKGROUND_PALETTE_ID_TO_ADDRS(a) ( \
-      a == 0 ? 0x3F00 : ( \
-      a == 1 ? 0x3F04 : ( \
-      a == 2 ? 0x3F08 : 0x3F0C )) \
-    )
+    a == 0 ? 0x3F00 : ( \
+    a == 1 ? 0x3F04 : ( \
+    a == 2 ? 0x3F08 : 0x3F0C )) \
+  )
 
 #define SPRITE_PALETTE_ID_TO_ADDRS(a) ( \
-      a == 0 ? 0x3F10 : ( \
-      a == 1 ? 0x3F14 : ( \
-      a == 2 ? 0x3F18 : 0x3F1C )) \
-    )
+    a == 0 ? 0x3F10 : ( \
+    a == 1 ? 0x3F14 : ( \
+    a == 2 ? 0x3F18 : 0x3F1C )) \
+  )
 
 void oamDMA(uint8_t hibyte) {
   uint16_t addrs = (hibyte << 8);
 
   for (int i = 0; ; i++, ppu.oam.addrs++) {
-    ppu.oam.data[ppu.oam.addrs] = readCPUByte(addrs + i);
+    ppu.oam.data[ppu.oam.addrs] = readCPUByte(addrs + i, true);
     if (ppu.oam.addrs == 0xFF) {
-        ppu.oam.addrs = 0;
-        break;
+      ppu.oam.addrs = 0;
+      break;
     }
   }
 
@@ -107,7 +107,7 @@ void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
   }
 }
 
-uint8_t backgroundPixelColorAt(uint8_t x, uint8_t y) {
+void backgroundPaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
   uint16_t addrs_nametable = NAMETABLE_ID_TO_ADDRS(GET_BASE_NAMETABLE_ID());
   uint8_t tile_x = x/8;
   uint8_t tile_y = y/8;
@@ -123,10 +123,10 @@ uint8_t backgroundPixelColorAt(uint8_t x, uint8_t y) {
 
 #if 0
   for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 8; j++) {
-          printf("%d ", decoded_tile[i*8 + j]);
-      }
-      printf("\n");
+    for (int j = 0; j < 8; j++) {
+      printf("%d ", decoded_tile[i*8 + j]);
+    }
+    printf("\n");
   }
   puts("===");
 #endif
@@ -141,21 +141,23 @@ uint8_t backgroundPixelColorAt(uint8_t x, uint8_t y) {
   uint8_t palette_id;
 
   if (tile_x < 2 && tile_y < 2) palette_id = attribute_tile & 0b11;
-  else if (tile_x >= 2 && tile_y < 2) palette_id = attribute_tile & 0b1100;
-  else if (tile_x < 2 && tile_y >= 2) palette_id = attribute_tile & 0b110000;
-  else palette_id = attribute_tile & 0b11000000;
+  else if (tile_x >= 2 && tile_y < 2) palette_id = (attribute_tile & 0b1100) >> 2;
+  else if (tile_x < 2 && tile_y >= 2) palette_id = (attribute_tile & 0b110000) >> 4;
+  else palette_id = (attribute_tile & 0b11000000) >> 6;
 
-  uint16_t addrs_palette = BACKGROUND_PALETTE_ID_TO_ADDRS(palette_id);
+  *addrs_palette = BACKGROUND_PALETTE_ID_TO_ADDRS(palette_id);
   x = x % 8;
   y = y % 8;
 
-  uint8_t pixel_palette = decoded_tile[y*8 + x];
+  *pixel_palette = decoded_tile[y*8 + x];
+}
 
+uint8_t backgroundPaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_palette) {
   if (pixel_palette == 0) return readPPUByte(0x3F00);
   return readPPUByte(addrs_palette + pixel_palette);
 }
 
-sprite_priority spritePixelColorAt(uint8_t x, uint8_t y, uint8_t *color) {
+priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
   // TODO: 8x16 sprites
   for (int i = 0; i < 64; i++) {
     uint8_t sprite_x = GET_SPRITE_X(i);
@@ -169,31 +171,33 @@ sprite_priority spritePixelColorAt(uint8_t x, uint8_t y, uint8_t *color) {
     if (x >= sprite_x && x < sprite_x + 8 &&
         y >= sprite_y && y < sprite_y + 8) {
 
-        uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_SPRITE_PATTERN_TABLE_ID());
-        uint8_t tile[16];
-        uint8_t decoded_tile[64];
+      uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_SPRITE_PATTERN_TABLE_ID());
+      uint8_t tile[16];
+      uint8_t decoded_tile[64];
 
-        for (int i = 0; i < 16; i++) {
-            tile[i] = readPPUByte(addrs_patterntable + 16*tile_number + i);
-        }
-        decodeTile(tile, decoded_tile);
+      for (int i = 0; i < 16; i++) {
+        tile[i] = readPPUByte(addrs_patterntable + 16*tile_number + i);
+      }
+      decodeTile(tile, decoded_tile);
 
-        uint16_t addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
-        x = x - sprite_x;
-        y = y - sprite_y;
+      *addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
+      x = x - sprite_x;
+      y = y - sprite_y;
 
-        //if (flip_v) y = 7 - y;
-        //if (flip_h) x = 7 - x;
+      if (flip_v) y = 7 - y;
+      if (flip_h) x = 7 - x;
 
-        uint8_t pixel_palette = decoded_tile[y*8 + x];
+      *pixel_palette = decoded_tile[y*8 + x];
 
-        if (!pixel_palette) continue;
+      if (!*pixel_palette) continue;
 
-        *color = readPPUByte(addrs_palette + pixel_palette);
-
-        return priority + 1; // based on sprite_priority enum
+      return priority + 1; // based on sprite_priority enum
     }
   }
 
-  return SP_NO_SPRITE;
+  return P_NO_SPRITE;
+}
+
+uint8_t spritePaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_palette) {
+  return readPPUByte(addrs_palette + pixel_palette);
 }

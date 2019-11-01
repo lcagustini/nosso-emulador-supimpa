@@ -19,15 +19,26 @@ uint8_t readPPUByte(uint16_t addrs) {
   return 0;
 }
 
-uint8_t readCPUByte(uint16_t addrs) {
+uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
   if (addrs < 0x2000) return cpu.ram[addrs % 0x800];
 
-  if (addrs == 0x2002) return ppu.status;
+  if (addrs == 0x2002) {
+    uint8_t ppu_old = ppu.status;
+
+    if (!internal_read) {
+      ppu.status &= ~BIT7;
+      ppu.scroll.x = ppu.scroll.y = 0;
+      ppu.ram.addrs = 0;
+    }
+
+    return ppu_old;
+  }
   if (addrs == 0x2004) return ppu.oam.data[ppu.oam.addrs];
   if (addrs == 0x2007) return readPPUByte(ppu.ram.addrs);
+  if (addrs >= 0x2008 && addrs < 0x4000) readCPUByte(0x2000 + (addrs % 8), internal_read);
 
-  if (addrs == 0x4016) return getNextInput1();
-  if (addrs == 0x4017) return getNextInput2();
+  if (addrs == 0x4016) return internal_read ? 0 : getNextInput1();
+  if (addrs == 0x4017) return internal_read ? 0 : getNextInput2();
   if (addrs >= 0x4020) return cartridge.PRG[addrs-(0x10000-cartridge.PRG_size)];
 
   return 0;
@@ -66,15 +77,15 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
 }
 
 uint8_t getInstructionByte() {
-  uint8_t byte = readCPUByte(cpu.rb.pc);
+  uint8_t byte = readCPUByte(cpu.rb.pc, true);
   cpu.rb.pc++;
   return byte;
 }
 
 uint16_t getInstructionAddrs() {
-  uint16_t addrs = readCPUByte(cpu.rb.pc);
+  uint16_t addrs = readCPUByte(cpu.rb.pc, true);
   cpu.rb.pc++;
-  addrs = addrs | (readCPUByte(cpu.rb.pc) << 8);
+  addrs = addrs | (readCPUByte(cpu.rb.pc, true) << 8);
   cpu.rb.pc++;
   return addrs;
 }
