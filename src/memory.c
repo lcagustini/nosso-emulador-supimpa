@@ -74,6 +74,7 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
     writePPUByte(ppu.ram.addrs, data);
     ppu.ram.addrs += GET_VRAM_PPU_INCREMENT() ? 32 : 1;
   }
+  if (addrs >= 0x2008 && addrs < 0x4000) writeCPUByte(0x2000 + (addrs % 8), data);
   if (addrs == 0x4014) oamDMA(data);
   if (addrs == 0x4016) input.poll_enable = data;
 }
