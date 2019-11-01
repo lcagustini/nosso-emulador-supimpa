@@ -36,6 +36,7 @@
 
 //#define OPCODE_PRINT
 //#define DEBUG_PRINT
+#define PPU_CHR_PRINT
 
 void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p);
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
@@ -234,7 +235,6 @@ reset:
 
           float target_usec_per_frame = (1/60.0f) * 1000000.0f;
           float sleep_time = target_usec_per_frame - (float) diff_usec;
-          //printf("diff_usec:%lf, target_usec_per_frame: %lf, sleep_time: %lf\n", (float)diff_usec, target_usec_per_frame, sleep_time);
           if (sleep_time > 0) {
             usleep(sleep_time);
           }
@@ -242,6 +242,30 @@ reset:
 
         // draw frame
         SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
+
+#ifdef PPU_CHR_PRINT
+        for (int tile = 0; tile < 256; tile++) {
+          int tx = 8*(tile % (WINDOW_ZOOM*20));
+          int ty = 8*(tile / (WINDOW_ZOOM*20));
+          uint32_t *pixels = screen_surface->pixels;
+
+          for (int iy = 0; iy < 8; iy++) {
+            for (int ix = 0; ix < 8; ix++) {
+              int x = tx + ix;
+              int y = ty + iy;
+
+              uint16_t addrs_palette;
+              uint8_t backgroud_palette;
+
+              backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
+              uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
+
+              pixels[y*screen_surface->w + x] = nes_palette[backgroud_color]; // ARGB
+            }
+          }
+        }
+#endif
+
         SDL_UpdateWindowSurface(window);
       }
       if (ppu.draw.x == 1 && ppu.draw.y == 241) { // TODO: check if we should really unset it on this pixel
@@ -259,7 +283,5 @@ reset:
 
   SDL_DestroyWindow(window);
   SDL_Quit();
-
-  puts("fechou mano!!!!!");
   return 0;
 }
