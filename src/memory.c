@@ -29,12 +29,14 @@ uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
       ppu.status &= ~BIT7;
       ppu.scroll.x = ppu.scroll.y = 0;
       ppu.ram.addrs = 0;
+
+      ppu.write_flag = 0;
     }
 
     return ppu_old;
   }
-  if (addrs == 0x2004) return ppu.oam.data[ppu.oam.addrs];
-  if (addrs == 0x2007) return readPPUByte(ppu.ram.addrs);
+  if (addrs == 0x2004) return internal_read ? ppu.oam.data[ppu.oam.addrs] : ppu.oam.data[ppu.oam.addrs++];
+  if (addrs == 0x2007) return internal_read ? readPPUByte(ppu.ram.addrs) : readPPUByte(ppu.ram.addrs++);
   if (addrs >= 0x2008 && addrs < 0x4000) readCPUByte(0x2000 + (addrs % 8), internal_read);
 
   if (addrs == 0x4016) return internal_read ? 0 : getNextInput1();
@@ -55,18 +57,18 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
     ppu.oam.addrs++; // TODO: shouldn't happen during vblank or forced blank
   }
   if (addrs == 0x2005) {
-    if (ppu.scroll.write_flag) ppu.scroll.y = data;
+    if (ppu.write_flag) ppu.scroll.y = data;
     else ppu.scroll.x = data;
 
-    ppu.scroll.write_flag = !ppu.scroll.write_flag;
+    ppu.write_flag = !ppu.write_flag;
   }
   if (addrs == 0x2006) {
-    if (ppu.ram.write_flag) ppu.ram.addrs = (ppu.ram.addrs & (~0xFF)) | data;
+    if (ppu.write_flag) ppu.ram.addrs = (ppu.ram.addrs & (~0xFF)) | data;
     else ppu.ram.addrs = (ppu.ram.addrs & (~0xFF00)) | (data << 8);
 
     ppu.scroll.y = ppu.scroll.x = 0;
 
-    ppu.ram.write_flag = !ppu.ram.write_flag;
+    ppu.write_flag = !ppu.write_flag;
   }
   if (addrs == 0x2007) {
     writePPUByte(ppu.ram.addrs, data);

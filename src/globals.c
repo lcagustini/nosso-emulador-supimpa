@@ -41,14 +41,14 @@ struct {
   uint8_t mask;
   uint8_t status;
 
+  bool write_flag;
+
   struct {
-    bool write_flag;
     uint8_t x;
     uint8_t y;
   } scroll;
 
   struct {
-    bool write_flag;
     uint16_t addrs;
     uint8_t data[PPU_RAM];
   } ram;
