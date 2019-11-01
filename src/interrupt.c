@@ -12,7 +12,7 @@ void checkForInterrupts() {
     writeCPUByte(addrs, (cpu.rb.p | BIT5) & (~BIT4));
     cpu.rb.sp--;
 
-    cpu.rb.pc = readCPUByte(0xFFFE) | (readCPUByte(0xFFFF) << 8);
+    cpu.rb.pc = readCPUByte(0xFFFE, false) | (readCPUByte(0xFFFF, false) << 8);
 
     cpu.interrupt.irq = false;
 
@@ -32,7 +32,7 @@ void checkForInterrupts() {
     writeCPUByte(addrs, (cpu.rb.p | BIT5) & (~BIT4));
     cpu.rb.sp--;
 
-    cpu.rb.pc = readCPUByte(0xFFFA) | (readCPUByte(0xFFFB) << 8);
+    cpu.rb.pc = readCPUByte(0xFFFA, false) | (readCPUByte(0xFFFB, false) << 8);
 
     cpu.interrupt.nmi = false;
 
@@ -52,7 +52,7 @@ void checkForInterrupts() {
     writeCPUByte(addrs, cpu.rb.p | BIT5 | BIT4);
     cpu.rb.sp--;
 
-    cpu.rb.pc = readCPUByte(0xFFFE) | (readCPUByte(0xFFFF) << 8);
+    cpu.rb.pc = readCPUByte(0xFFFE, false) | (readCPUByte(0xFFFF, false) << 8);
 
     cpu.interrupt.brk = false;
 

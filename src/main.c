@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #define bool uint8_t
 #define true 1
@@ -39,7 +40,7 @@
 void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p);
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
 
-uint8_t readCPUByte(uint16_t addrs);
+uint8_t readCPUByte(uint16_t addrs, bool internal_read);
 uint8_t readPPUByte(uint16_t addrs);
 
 #include "globals.c"
@@ -155,21 +156,21 @@ int main(int argc, char* argv[]) {
   cpu.rb.sp = 0xfd;
 
 reset:
-  cpu.rb.pc = readCPUByte(0xFFFC) | (readCPUByte(0xFFFD) << 8);
+  cpu.rb.pc = readCPUByte(0xFFFC, true) | (readCPUByte(0xFFFD, true) << 8);
   gettimeofday(&last_frame_time, NULL);
   while (true) {
     pollInput();
 
     uint8_t opcode = getInstructionByte();
 #ifdef OPCODE_PRINT
-    printf("%s ", optable[opcode]);
+    printf("%s (%02X) ", optable[opcode], opcode);
 #endif
     doInstruction(opcode);
     checkForInterrupts();
 
     while (cpu.clock_cycles >= 3) {
       //printf("%d\n", cpu.clock_cycles);
-      if (ppu.draw.x < 256 && ppu.draw.y >= 8 && ppu.draw.y < 232){ // TODO; we should also set BIT6 of ppu.status for first and last line of screen
+      if (ppu.draw.x < 256 && ppu.draw.y >= 8 && ppu.draw.y < 232) { // TODO; we should also set BIT6 of ppu.status for first and last line of screen
         uint32_t *pixels = draw_surface->pixels;
         uint16_t addrs_palette;
         uint8_t sprite_palette;
@@ -183,10 +184,10 @@ reset:
 
         if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
         // TODO: check priorities better
-        // TODO: we have to skip the first tile line
         if (sprite_priority) {
           pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
-        } else {
+        }
+        else {
           pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
         }
 
@@ -195,6 +196,7 @@ reset:
       else if (ppu.draw.x > 339) {
         ppu.draw.x = 0;
         ppu.draw.y += 1;
+
         continue;
       }
       else {
@@ -206,7 +208,6 @@ reset:
         ppu.status = 0;
       }
 
-      //printf("x: %d, y: %d\n", ppu.draw.x, ppu.draw.y);
       if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame
         ppu.status |= BIT7;
 
@@ -233,7 +234,7 @@ reset:
 
           float target_usec_per_frame = (1/60.0f) * 1000000.0f;
           float sleep_time = target_usec_per_frame - (float) diff_usec;
-          printf("diff_usec:%lf, target_usec_per_frame: %lf, sleep_time: %lf\n", (float)diff_usec, target_usec_per_frame, sleep_time);
+          //printf("diff_usec:%lf, target_usec_per_frame: %lf, sleep_time: %lf\n", (float)diff_usec, target_usec_per_frame, sleep_time);
           if (sleep_time > 0) {
             usleep(sleep_time);
           }
