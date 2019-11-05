@@ -18,7 +18,7 @@
 #define COLOR_RESET "\033[0m"
 
 #define CPU_RAM 0x800
-#define PPU_RAM 0x800
+#define PPU_RAM 0xC00
 #define OAM_RAM 256
 
 #define WINDOW_ZOOM 3

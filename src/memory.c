@@ -1,13 +1,30 @@
-void writePPUByte(uint16_t addrs, uint8_t data){
-  if (addrs >= 0x2000 && addrs < 0x2800) ppu.ram.data[addrs - 0x2000] = data;
-  if (addrs >= 0x3000 && addrs < 0x3F00) writePPUByte(addrs - 0x1000, data);
-  if (addrs >= 0x3F00) ppu.palette_ram[(addrs - 0x3F00) % 0x20] = data;
+void writePPUByte(uint16_t addrs, uint8_t data) {
+  if (addrs >= 0x2000 && addrs < 0x3000) {
+    addrs -= 0x2000;
+    if (cartridge.mirror) {
+      if ((addrs >= 0x400 && addrs < 0x800) || addrs >= 0xC00) addrs -= 0x400;
+    }
+    else if ((addrs >= 0x800 && addrs < 0xC00) || addrs >= 0xC00) addrs -= 0x800;
+    assert(addrs < 0xC00);
+    ppu.ram.data[addrs] = data;
+  }
+  else if (addrs >= 0x3000 && addrs < 0x3F00) writePPUByte(addrs - 0x1000, data);
+  else if (addrs >= 0x3F00) ppu.palette_ram[(addrs - 0x3F00) % 0x20] = data;
 }
 
 uint8_t readPPUByte(uint16_t addrs) {
   if (addrs < 0x2000) return cartridge.CHR[addrs];
 
-  if (addrs < 0x2800) return ppu.ram.data[addrs - 0x2000];
+  if (addrs < 0x3000) {
+    addrs -= 0x2000;
+    if (cartridge.mirror) {
+      if ((addrs >= 0x400 && addrs < 0x800) || addrs >= 0xC00) addrs -= 0x400;
+    }
+    else if ((addrs >= 0x800 && addrs < 0xC00) || addrs >= 0xC00) addrs -= 0x800;
+    assert(addrs < 0xC00);
+    return ppu.ram.data[addrs];
+  }
+
   if (addrs >= 0x3000 && addrs < 0x3F00) return readPPUByte(addrs - 0x1000);
 
   if (addrs >= 0x3F00) {

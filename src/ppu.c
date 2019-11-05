@@ -2,9 +2,9 @@
 #define GET_BASE_NAMETABLE_ID() (ppu.ctrl & 0b11)
 #define SET_BASE_NAMETABLE_ID(a) (ppu.ctrl = (ppu.ctrl & (~0b11)) | (a & 0b11))
 #define NAMETABLE_ID_TO_ADDRS(a) ( \
-    a == 0 ? 0x2000 : ( \
-    a == 1 ? 0x2400 : ( \
-    a == 2 ? 0x2800 : 0x2C00 )) \
+    (a) == 0 ? 0x2000 : ( \
+    (a) == 1 ? 0x2400 : ( \
+    (a) == 2 ? 0x2800 : 0x2C00 )) \
   )
 
 #define GET_VRAM_PPU_INCREMENT() (ppu.ctrl & BIT2)
@@ -107,31 +107,40 @@ void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
   }
 }
 
-void backgroundPaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
-  uint16_t addrs_nametable = NAMETABLE_ID_TO_ADDRS(GET_BASE_NAMETABLE_ID());
-  uint8_t tile_x = x/8;
-  uint8_t tile_y = y/8;
+void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
+  uint8_t nametable_id = GET_BASE_NAMETABLE_ID();
+  x += nametable_id & 1 ? 256 : 0;
+  y += nametable_id & 2 ? 240 : 0;
+
+  uint8_t tile_x = (x/8)%64;
+  uint8_t tile_y = (y/8)%60;
+
+  nametable_id = 0;
+  if (tile_x >= 32 && tile_y < 30) {
+    nametable_id = 1;
+  }
+  else if (tile_x < 32 && tile_y >= 30) {
+    nametable_id = 2;
+  }
+  else if (tile_x >= 32 && tile_y >= 30) {
+    nametable_id = 3;
+  }
+  uint16_t addrs_nametable = NAMETABLE_ID_TO_ADDRS(nametable_id);
+
+  tile_x %= 32;
+  tile_y %= 30;
+
   uint8_t pattern_id = readPPUByte(addrs_nametable + 32*tile_y + tile_x);
   uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_BACKGROUND_PATTERN_TABLE_ID());
   uint8_t tile[16];
   uint8_t decoded_tile[64];
-
+  
   for (int i = 0; i < 16; i++) {
     tile[i] = readPPUByte(addrs_patterntable + 16*pattern_id + i);
   }
   decodeTile(tile, decoded_tile);
 
-#if 0
-  for (int i = 0; i < 8; i++) {
-    for (int j = 0; j < 8; j++) {
-      printf("%d ", decoded_tile[i*8 + j]);
-    }
-    printf("\n");
-  }
-  puts("===");
-#endif
-
-  uint16_t addrs_attributetable = GET_ATTRIBUTETABLE_ADDRS(GET_BASE_NAMETABLE_ID());
+  uint16_t addrs_attributetable = GET_ATTRIBUTETABLE_ADDRS(nametable_id);
   uint8_t attribute_tile_x = tile_x/4;
   uint8_t attribute_tile_y = tile_y/4;
   uint8_t attribute_tile = readPPUByte(addrs_attributetable + 8*attribute_tile_y + attribute_tile_x);
