@@ -1,7 +1,7 @@
 void pollInput() {
   if (!input.poll_enable) return;
 
-  input.shift_register1 = 0;
+  input.shift_register1 = input.shift_register2 = 0;
 
   // Controller 1
   if (input_state[SDL_SCANCODE_N]) input.shift_register1 |= BIT0;
@@ -24,14 +24,14 @@ void pollInput() {
   if (input_state[SDL_SCANCODE_D]) input.shift_register2 |= BIT7;
 }
 
-bool getNextInput1() {
+uint8_t getNextInput1() {
   bool bit = input.shift_register1 & BIT0;
   input.shift_register1 >>= 1;
-  return bit;
+  return bit | 0b1000000;
 }
 
-bool getNextInput2() {
+uint8_t getNextInput2() {
   bool bit = input.shift_register2 & BIT0;
   input.shift_register2 >>= 1;
-  return bit;
+  return bit | 0b1000000;
 }

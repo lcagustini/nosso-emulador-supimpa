@@ -41,7 +41,7 @@ void doInstruction(uint8_t opcode) {
   switch (opcode) {
     case 0x00: // brk
       {
-        exit(0);
+        //exit(0);
 
         cpu.interrupt.brk = true;
         cpu.clock_cycles += 7;
@@ -317,12 +317,16 @@ void doInstruction(uint8_t opcode) {
       {
         uint16_t dst = getInstructionAddrs();
         uint16_t addrs = 0x0100 | cpu.rb.sp;
+
+        cpu.rb.pc--;
+
         writeCPUByte(addrs, (cpu.rb.pc >> 8) & 0xFF);
         cpu.rb.sp--;
 
         addrs = 0x0100 | cpu.rb.sp;
         writeCPUByte(addrs, cpu.rb.pc & 0xFF);
         cpu.rb.sp--;
+
         cpu.rb.pc = dst;
         cpu.clock_cycles += 6;
 
@@ -938,8 +942,10 @@ void doInstruction(uint8_t opcode) {
         cpu.rb.sp++;
         addrs = 0x0100 | cpu.rb.sp;
         cpu.rb.pc |= readCPUByte(addrs, false) << 8;
+
+        cpu.rb.pc++;
+
         cpu.clock_cycles += 6;
-//        cpu.rb.pc++;
 
 #ifdef DEBUG_PRINT
         print(cpu.rb.a, cpu.rb.x, cpu.rb.y, cpu.rb.sp, cpu.rb.pc, cpu.rb.p);
@@ -1073,7 +1079,8 @@ void doInstruction(uint8_t opcode) {
     case 0x6C: // jmp (abs)
       {
         uint16_t addrs = getInstructionAddrs();
-        cpu.rb.pc = readCPUByte(addrs, false) | (readCPUByte(addrs+1, false) << 8);
+        if ((addrs & 0xFF) == 0xFF) cpu.rb.pc = readCPUByte(addrs, false) | (readCPUByte(addrs & 0xFF00, false) << 8);
+        else cpu.rb.pc = readCPUByte(addrs, false) | (readCPUByte(addrs+1, false) << 8);
 
         cpu.clock_cycles += 5;
 
