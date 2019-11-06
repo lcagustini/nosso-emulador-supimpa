@@ -134,7 +134,7 @@ void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, u
   uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_BACKGROUND_PATTERN_TABLE_ID());
   uint8_t tile[16];
   uint8_t decoded_tile[64];
-  
+
   for (int i = 0; i < 16; i++) {
     tile[i] = readPPUByte(addrs_patterntable + 16*pattern_id + i);
   }
@@ -227,14 +227,12 @@ void drawTVScreenPixel(SDL_Surface *draw_surface) {
   backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
   uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
 
-  uint8_t sprite_id;
+  uint8_t sprite_id = 1;
   priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette, &sprite_id);
   uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
 
-  if (!(ppu.status & BIT6) && sprite_id == 0 && sprite_palette && backgroud_palette) {
-    //puts("SPRITE 0-HIT");
-    ppu.status |= BIT6;
-  }
+  if (!(ppu.status & BIT6) && sprite_id == 0 && sprite_palette && backgroud_palette) ppu.status |= BIT6;
+
   if (sprite_priority == P_OVER_BG || (sprite_priority == P_UNDER_BG && !backgroud_palette)) {
     pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
   }

@@ -48,9 +48,6 @@ uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
 
     if (!internal_read) {
       ppu.status &= ~BIT7;
-      ppu.scroll.x = ppu.scroll.y = 0;
-      ppu.ram.addrs = 0;
-
       ppu.write_flag = 0;
     }
 
