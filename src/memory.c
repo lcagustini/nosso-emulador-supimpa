@@ -1,7 +1,7 @@
 void writePPUByte(uint16_t addrs, uint8_t data) {
   if (addrs >= 0x2000 && addrs < 0x3000) {
     addrs -= 0x2000;
-    if (cartridge.mirror) {
+    if (!cartridge.mirror) {
       if ((addrs >= 0x400 && addrs < 0x800) || addrs >= 0xC00) addrs -= 0x400;
     }
     else if ((addrs >= 0x800 && addrs < 0xC00) || addrs >= 0xC00) addrs -= 0x800;
@@ -21,7 +21,7 @@ uint8_t readPPUByte(uint16_t addrs) {
 
   if (addrs < 0x3000) {
     addrs -= 0x2000;
-    if (cartridge.mirror) {
+    if (!cartridge.mirror) {
       if ((addrs >= 0x400 && addrs < 0x800) || addrs >= 0xC00) addrs -= 0x400;
     }
     else if ((addrs >= 0x800 && addrs < 0xC00) || addrs >= 0xC00) addrs -= 0x800;

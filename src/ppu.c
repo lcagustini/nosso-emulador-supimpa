@@ -189,20 +189,17 @@ priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, u
       }
       decodeTile(tile, decoded_tile);
 
-      uint16_t tmp_addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
-      x = x - sprite_x;
-      y = y - sprite_y;
+      *addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
+      uint8_t tx = x - sprite_x;
+      uint8_t ty = y - sprite_y;
 
-      if (flip_v) y = 7 - y;
-      if (flip_h) x = 7 - x;
+      if (flip_v) ty = 7 - ty;
+      if (flip_h) tx = 7 - tx;
 
-      uint16_t tmp_pixel_palette = decoded_tile[y*8 + x];
-
-      if (!tmp_pixel_palette) continue;
-
-      *addrs_palette = tmp_addrs_palette;
-      *pixel_palette = tmp_pixel_palette;
+      *pixel_palette = decoded_tile[ty*8 + tx];
       *sprite_id = i;
+
+      if (!*pixel_palette) continue;
 
       return priority + 1; // based on sprite_priority enum
     }
