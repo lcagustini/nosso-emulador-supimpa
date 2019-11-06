@@ -166,7 +166,7 @@ uint8_t backgroundPaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_pale
   return readPPUByte(addrs_palette + pixel_palette);
 }
 
-priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
+priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette, uint8_t *sprite_id) {
   // TODO: 8x16 sprites
   for (int i = 0; i < 64; i++) {
     uint8_t sprite_x = GET_SPRITE_X(i);
@@ -189,16 +189,20 @@ priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, u
       }
       decodeTile(tile, decoded_tile);
 
-      *addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
+      uint16_t tmp_addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
       x = x - sprite_x;
       y = y - sprite_y;
 
       if (flip_v) y = 7 - y;
       if (flip_h) x = 7 - x;
 
-      *pixel_palette = decoded_tile[y*8 + x];
+      uint16_t tmp_pixel_palette = decoded_tile[y*8 + x];
 
-      if (!*pixel_palette) continue;
+      if (!tmp_pixel_palette) continue;
+
+      *addrs_palette = tmp_addrs_palette;
+      *pixel_palette = tmp_pixel_palette;
+      *sprite_id = i;
 
       return priority + 1; // based on sprite_priority enum
     }
@@ -223,10 +227,14 @@ void drawTVScreenPixel(SDL_Surface *draw_surface) {
   backgroundPaletteIndexAt(x, y, &addrs_palette, &backgroud_palette);
   uint8_t backgroud_color = backgroundPaletteIndexToColor(addrs_palette, backgroud_palette);
 
-  priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette);
+  uint8_t sprite_id;
+  priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette, &sprite_id);
   uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
 
-  if (sprite_palette && backgroud_palette) ppu.status |= BIT6;
+  if (!(ppu.status & BIT6) && sprite_id == 0 && sprite_palette && backgroud_palette) {
+    //puts("SPRITE 0-HIT");
+    ppu.status |= BIT6;
+  }
   if (sprite_priority == P_OVER_BG || (sprite_priority == P_UNDER_BG && !backgroud_palette)) {
     pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
   }
@@ -313,6 +321,7 @@ void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_sur
       assert(!ppu.draw.x);
       ppu.draw.y = 0;
       ppu.status = 0;
+      //puts("start of frame");
     }
 
     if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame, vblank
