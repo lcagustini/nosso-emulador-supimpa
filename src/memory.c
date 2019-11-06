@@ -9,7 +9,11 @@ void writePPUByte(uint16_t addrs, uint8_t data) {
     ppu.ram.data[addrs] = data;
   }
   else if (addrs >= 0x3000 && addrs < 0x3F00) writePPUByte(addrs - 0x1000, data);
-  else if (addrs >= 0x3F00) ppu.palette_ram[(addrs - 0x3F00) % 0x20] = data;
+  else if (addrs >= 0x3F00) {
+    addrs = (addrs - 0x3F00) % 0x20;
+    if (addrs == 0x10 || addrs == 0x14 || addrs == 0x18 || addrs == 0x1C) addrs -= 0x10;
+    ppu.palette_ram[addrs] = data;
+  }
 }
 
 uint8_t readPPUByte(uint16_t addrs) {
