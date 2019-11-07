@@ -130,20 +130,20 @@ void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, u
   tile_x %= 32;
   tile_y %= 30;
 
-  uint8_t pattern_id = readPPUByte(addrs_nametable + 32*tile_y + tile_x);
+  uint8_t pattern_id = readPPUByte(addrs_nametable + 32*tile_y + tile_x, true);
   uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_BACKGROUND_PATTERN_TABLE_ID());
   uint8_t tile[16];
   uint8_t decoded_tile[64];
 
   for (int i = 0; i < 16; i++) {
-    tile[i] = readPPUByte(addrs_patterntable + 16*pattern_id + i);
+    tile[i] = readPPUByte(addrs_patterntable + 16*pattern_id + i, true);
   }
   decodeTile(tile, decoded_tile);
 
   uint16_t addrs_attributetable = GET_ATTRIBUTETABLE_ADDRS(nametable_id);
   uint8_t attribute_tile_x = tile_x/4;
   uint8_t attribute_tile_y = tile_y/4;
-  uint8_t attribute_tile = readPPUByte(addrs_attributetable + 8*attribute_tile_y + attribute_tile_x);
+  uint8_t attribute_tile = readPPUByte(addrs_attributetable + 8*attribute_tile_y + attribute_tile_x, true);
   tile_x = tile_x % 4;
   tile_y = tile_y % 4;
 
@@ -162,8 +162,8 @@ void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, u
 }
 
 uint8_t backgroundPaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_palette) {
-  if (pixel_palette == 0) return readPPUByte(0x3F00);
-  return readPPUByte(addrs_palette + pixel_palette);
+  if (pixel_palette == 0) return readPPUByte(0x3F00, true);
+  return readPPUByte(addrs_palette + pixel_palette, true);
 }
 
 priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette, uint8_t *sprite_id) {
@@ -185,7 +185,7 @@ priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, u
       uint8_t decoded_tile[64];
 
       for (int i = 0; i < 16; i++) {
-        tile[i] = readPPUByte(addrs_patterntable + 16*tile_number + i);
+        tile[i] = readPPUByte(addrs_patterntable + 16*tile_number + i, true);
       }
       decodeTile(tile, decoded_tile);
 
@@ -209,7 +209,7 @@ priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, u
 }
 
 uint8_t spritePaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_palette) {
-  return readPPUByte(addrs_palette + pixel_palette);
+  return readPPUByte(addrs_palette + pixel_palette, true);
 }
 
 void drawTVScreenPixel(SDL_Surface *draw_surface) {
@@ -228,7 +228,7 @@ void drawTVScreenPixel(SDL_Surface *draw_surface) {
   priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette, &sprite_id);
   uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
 
-  if (!(ppu.status & BIT6) && sprite_id == 0 && sprite_palette && backgroud_palette) ppu.status |= BIT6;
+  if (sprite_priority && sprite_id == 0 && sprite_palette && backgroud_palette && ppu.draw.x != 255) ppu.status |= BIT6;
 
   if (sprite_priority == P_OVER_BG || (sprite_priority == P_UNDER_BG && !backgroud_palette)) {
     pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
@@ -316,7 +316,6 @@ void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_sur
       assert(!ppu.draw.x);
       ppu.draw.y = 0;
       ppu.status = 0;
-      //puts("start of frame");
     }
 
     if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame, vblank

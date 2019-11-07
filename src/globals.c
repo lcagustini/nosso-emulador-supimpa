@@ -51,6 +51,7 @@ struct {
   struct {
     uint16_t addrs;
     uint8_t data[PPU_RAM];
+    uint8_t buffer;
   } ram;
 
   struct {

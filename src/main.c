@@ -42,7 +42,7 @@ void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p)
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
 
 uint8_t readCPUByte(uint16_t addrs, bool internal_read);
-uint8_t readPPUByte(uint16_t addrs);
+uint8_t readPPUByte(uint16_t addrs, bool internal_read);
 
 const int nes_palette[64] = {
   0x7C7C7C, 0x0000FC, 0x0000BC, 0x4428BC, 0x940084, 0xA80020, 0xA81000, 0x881400,
@@ -122,6 +122,9 @@ void loadNESFile(char *filepath) {
   fread(cartridge.CHR, 1, cartridge.CHR_size, rom_file);
 
   cpu.clock_cycles = 0;
+
+  printf("PRG size: %d\n", cartridge.PRG_size);
+  printf("CHR size: %d\n", cartridge.CHR_size);
 }
 
 int main(int argc, char* argv[]) {
