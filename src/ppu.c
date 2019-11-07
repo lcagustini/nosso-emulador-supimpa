@@ -275,9 +275,9 @@ void vblank(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_s
   SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
 
 #ifdef PPU_CHR_PRINT
-  for (int tile = 0; tile < 256; tile++) {
-    int tx = 8*(tile % (WINDOW_ZOOM*20));
-    int ty = 8*(tile / (WINDOW_ZOOM*20));
+  for (int tile = 0; tile < 3840; tile++) {
+    int tx = 8*(tile % 64);
+    int ty = 8*(tile / 64);
     uint32_t *pixels = screen_surface->pixels;
 
     for (int iy = 0; iy < 8; iy++) {
