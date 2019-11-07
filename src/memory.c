@@ -88,8 +88,11 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
     ppu.oam.addrs++; // TODO: shouldn't happen during vblank or forced blank
   }
   if (addrs == 0x2005) {
-    if (ppu.write_flag) ppu.scroll.y = data;
-    else ppu.scroll.x = data;
+    if (ppu.write_flag) ppu.scroll.temp_y = data;
+    else {
+      ppu.scroll.temp_x = data;
+      ppu.scroll.x = (ppu.scroll.x & (~0b111)) | (data & 0b111);
+    }
 
     ppu.write_flag = !ppu.write_flag;
   }
@@ -100,7 +103,7 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
     }
     else {
       ppu.ram.addrs = (ppu.ram.addrs & (~0xFF00)) | (data << 8);
-      ppu.scroll.x = data;
+      ppu.scroll.x = (ppu.scroll.x & 0b111) | (data & (~0b111));
     }
 
     ppu.write_flag = !ppu.write_flag;

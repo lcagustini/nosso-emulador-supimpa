@@ -301,28 +301,35 @@ void vblank(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_s
 }
 
 void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_surface) {
-  while (cpu.clock_cycles >= 3) {
+  while (cpu.clock_cycles >= ppu.clock_cycles) {
     if (ppu.draw.x < 256 && ppu.draw.y >= 8 && ppu.draw.y < 232) {
       drawTVScreenPixel(draw_surface);
+    }
+    else if (ppu.draw.y < 240 && ppu.draw.x == 256) {
+      ppu.scroll.x = ppu.scroll.temp_x;
     }
     else if (ppu.draw.x > 339) { // end of line, wrap
       ppu.draw.x = 0;
       ppu.draw.y += 1;
       continue;
     }
-    else if (ppu.draw.y == 261) ppu.status = 0;
+    else if (ppu.draw.y == 261) {
+      if (ppu.draw.x == 0) ppu.status = 0;
+      else if (ppu.draw.x >= 279 && ppu.draw.x <= 303) ppu.scroll.y = ppu.scroll.temp_y;
+    }
     else if (ppu.draw.y > 261) { // end of screen, wrap
       assert(!ppu.draw.x);
       ppu.draw.y = 0;
+      continue;
     }
-    else if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame, vblank
+    else if (ppu.draw.x == 339 && ppu.draw.y == 240) { // end of frame, vblank
       vblank(window, draw_surface, screen_surface);
     }
-    else if (ppu.draw.x == 1 && ppu.draw.y == 241) { // first pixel after vblank
+    else if (ppu.draw.x == 0 && ppu.draw.y == 241) { // first pixel after vblank
       ppu.status &= ~BIT7;
     }
 
-    cpu.clock_cycles -= 3;
+    ppu.clock_cycles += 3;
     ppu.draw.x += 1;
   }
 }

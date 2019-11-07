@@ -44,6 +44,9 @@ struct {
   bool write_flag;
 
   struct {
+    uint8_t temp_x;
+    uint8_t temp_y;
+
     uint8_t x;
     uint8_t y;
   } scroll;
@@ -66,6 +69,7 @@ struct {
 
   uint8_t palette_ram[32];
 
+  uint64_t clock_cycles;
 } ppu;
 
 struct {
