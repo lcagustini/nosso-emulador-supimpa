@@ -26,12 +26,12 @@ void pollInput() {
 
 uint8_t getNextInput1() {
   bool bit = input.shift_register1 & BIT0;
-  input.shift_register1 >>= 1;
+  if (!input.poll_enable) input.shift_register1 >>= 1;
   return bit | 0b1000000;
 }
 
 uint8_t getNextInput2() {
   bool bit = input.shift_register2 & BIT0;
-  input.shift_register2 >>= 1;
+  if (!input.poll_enable) input.shift_register2 >>= 1;
   return bit | 0b1000000;
 }

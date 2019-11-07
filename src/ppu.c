@@ -310,22 +310,19 @@ void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_sur
       ppu.draw.y += 1;
       continue;
     }
-    cpu.clock_cycles -= 3;
-
-    if (ppu.draw.y > 261) { // end of screen, wrap
+    else if (ppu.draw.y == 261) ppu.status = 0;
+    else if (ppu.draw.y > 261) { // end of screen, wrap
       assert(!ppu.draw.x);
       ppu.draw.y = 0;
-      ppu.status = 0;
     }
-
-    if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame, vblank
+    else if (ppu.draw.x == 0 && ppu.draw.y == 241) { // end of frame, vblank
       vblank(window, draw_surface, screen_surface);
     }
-
-    if (ppu.draw.x == 1 && ppu.draw.y == 241) { // first pixel after vblank
+    else if (ppu.draw.x == 1 && ppu.draw.y == 241) { // first pixel after vblank
       ppu.status &= ~BIT7;
     }
 
+    cpu.clock_cycles -= 3;
     ppu.draw.x += 1;
   }
 }
