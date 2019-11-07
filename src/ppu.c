@@ -241,13 +241,6 @@ void drawTVScreenPixel(SDL_Surface *draw_surface) {
 void vblank(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_surface) {
   ppu.status |= BIT7;
 
-  // update inputs
-  SDL_Event e;
-  while(SDL_PollEvent(&e)){
-    if(e.type == SDL_QUIT) exit(0);
-  }
-  input_state = SDL_GetKeyboardState(NULL);
-
   // sleep remaining time if we're too fast
   // TODO: try for-based sleep
   {

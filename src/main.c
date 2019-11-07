@@ -163,8 +163,6 @@ reset:
   cpu.rb.pc = readCPUByte(0xFFFC, true) | (readCPUByte(0xFFFD, true) << 8);
   gettimeofday(&last_frame_time, NULL);
   while (true) {
-    pollInput();
-
     uint8_t opcode = getInstructionByte();
 #ifdef OPCODE_PRINT
     printf("%s (%02X) ", optable[opcode], opcode);
