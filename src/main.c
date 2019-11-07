@@ -123,8 +123,8 @@ void loadNESFile(char *filepath) {
 
   cpu.clock_cycles = 0;
 
-  printf("PRG size: %d\n", cartridge.PRG_size);
-  printf("CHR size: %d\n", cartridge.CHR_size);
+  printf("PRG size: %X\n", cartridge.PRG_size);
+  printf("CHR size: %X\n", cartridge.CHR_size);
 }
 
 int main(int argc, char* argv[]) {

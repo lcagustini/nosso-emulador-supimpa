@@ -72,7 +72,7 @@ uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
 
   if (addrs == 0x4016) return internal_read ? 0 : getNextInput1();
   if (addrs == 0x4017) return internal_read ? 0 : getNextInput2();
-  if (addrs >= 0x4020) return cartridge.PRG[addrs-(0x10000-cartridge.PRG_size)];
+  if (addrs >= 0x4020) return cartridge.PRG[addrs % cartridge.PRG_size];
 
   return 0;
 }
