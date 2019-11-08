@@ -56,6 +56,7 @@ uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
     uint8_t ppu_old = ppu.status;
 
     if (!internal_read) {
+      ppu.nmi_occurred = false;
       ppu.status &= ~BIT7;
       ppu.write_flag = 0;
     }

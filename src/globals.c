@@ -43,6 +43,8 @@ struct {
 
   bool write_flag;
 
+  bool nmi_occurred;
+
   struct {
     uint8_t temp_x;
     uint8_t temp_y;

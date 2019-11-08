@@ -168,10 +168,10 @@ reset:
     printf("%s (%02X) ", optable[opcode], opcode);
 #endif
     doInstruction(opcode);
-    checkForInterrupts();
     draw(window, draw_surface, screen_surface);
 
-    if ((ppu.status & BIT7) && (ppu.ctrl & BIT7)) cpu.interrupt.nmi = true;
+    if (ppu.nmi_occurred && (ppu.ctrl & BIT7)) cpu.interrupt.nmi = true;
+    checkForInterrupts();
   }
 
   free(cartridge.PRG);

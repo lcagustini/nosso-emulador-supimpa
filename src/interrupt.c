@@ -20,6 +20,8 @@ void checkForInterrupts() {
   }
 
   if (cpu.interrupt.nmi) {
+    ppu.nmi_occurred = false;
+
     uint16_t addrs = 0x0100 | cpu.rb.sp;
     writeCPUByte(addrs, (cpu.rb.pc >> 8) & 0xFF);
     cpu.rb.sp--;
