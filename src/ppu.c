@@ -298,6 +298,7 @@ void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_sur
     }
     else if (ppu.draw.y < 240 && ppu.draw.x == 256) {
       ppu.scroll.x = ppu.scroll.temp_x;
+      printf("PPU SCROLL X %d\n", ppu.scroll.x);
     }
     else if (ppu.draw.x > 340) { // end of line, wrap
       //printf("%d scanline ended, clock cycles: %d %d\n", ppu.draw.y, cpu.clock_cycles, ppu.clock_cycles);
