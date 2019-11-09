@@ -92,7 +92,7 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
     if (ppu.write_flag) ppu.scroll.temp_y = data;
     else {
       ppu.scroll.temp_x = data;
-      ppu.scroll.x = (ppu.scroll.x & (~0b111)) | (data & 0b111);
+      //ppu.scroll.x = (ppu.scroll.x & (~0b111)) | (data & 0b111);
     }
 
     ppu.write_flag = !ppu.write_flag;
