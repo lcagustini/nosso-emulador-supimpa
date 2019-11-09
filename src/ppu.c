@@ -228,14 +228,39 @@ void drawTVScreenPixel(SDL_Surface *draw_surface) {
   priority_t sprite_priority = spritePaletteIndexAt(ppu.draw.x, ppu.draw.y, &addrs_palette, &sprite_palette, &sprite_id);
   uint8_t sprite_color = spritePaletteIndexToColor(addrs_palette, sprite_palette);
 
-  if (sprite_priority && sprite_id == 0 && sprite_palette && backgroud_palette && ppu.draw.x != 255) ppu.status |= BIT6;
+  if (sprite_priority &&
+      sprite_id == 0 &&
+      sprite_palette &&
+      backgroud_palette &&
+      ppu.draw.x != 255 &&
+      (ppu.draw.x >= 8 || ((ppu.mask & BIT1) && (ppu.mask & BIT2)))) {
+    ppu.status |= BIT6;
+  }
 
-  if (sprite_priority == P_OVER_BG || (sprite_priority == P_UNDER_BG && !backgroud_palette)) {
-    pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[sprite_color]; // ARGB
+  uint32_t pixel_color = readPPUByte(0x3F00, true);
+  switch ((ppu.mask & 0b11000) >> 3) {
+    case 1:
+      if (ppu.draw.x >= 8 || (ppu.mask & BIT1)) pixel_color = backgroud_color;
+      break;
+    case 2:
+      if (ppu.draw.x >= 8 || (ppu.mask & BIT2)) pixel_color = sprite_color;
+      break;
+    case 3:
+      if (sprite_priority == P_OVER_BG || (sprite_priority == P_UNDER_BG && !backgroud_palette)) {
+        if (ppu.draw.x >= 8 || (ppu.mask & BIT2)) pixel_color = sprite_color;
+      }
+      else {
+        if (ppu.draw.x >= 8 || (ppu.mask & BIT1)) pixel_color = backgroud_color;
+      }
+      break;
+    default:
+      break;
   }
-  else {
-    pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = nes_palette[backgroud_color]; // ARGB
-  }
+
+  if (ppu.mask & BIT0) pixel_color &= 0x30;
+
+  uint32_t tv_color = emphasize(nes_palette[pixel_color]);
+  pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = tv_color;
 }
 
 void vblank(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_surface) {

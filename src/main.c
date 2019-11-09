@@ -57,6 +57,7 @@ const int nes_palette[64] = {
 
 
 #include "globals.c"
+#include "masks.c"
 #include "input.c"
 #include "ppu.c"
 #include "memory.c"
