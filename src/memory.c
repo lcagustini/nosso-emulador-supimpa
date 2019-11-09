@@ -100,11 +100,10 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
   if (addrs == 0x2006) {
     if (ppu.write_flag) {
       ppu.ram.addrs = (ppu.ram.addrs & (~0xFF)) | data;
-      ppu.scroll.y = data;
     }
     else {
       ppu.ram.addrs = (ppu.ram.addrs & (~0xFF00)) | (data << 8);
-      ppu.scroll.x = (ppu.scroll.x & 0b111) | (data & (~0b111));
+      ppu.ctrl = (ppu.ctrl & (~0b11)) | ((data >> 2) & 0b11);
     }
 
     ppu.write_flag = !ppu.write_flag;
