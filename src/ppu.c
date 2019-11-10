@@ -108,14 +108,10 @@ void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
 }
 
 void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
-  uint8_t nametable_id = GET_BASE_NAMETABLE_ID();
-  x += nametable_id & 1 ? 256 : 0;
-  y += nametable_id & 2 ? 240 : 0;
-
   uint8_t tile_x = (x/8)%64;
   uint8_t tile_y = (y/8)%60;
 
-  nametable_id = 0;
+  uint8_t nametable_id = 0;
   if (tile_x >= 32 && tile_y < 30) {
     nametable_id = 1;
   }
@@ -323,16 +319,19 @@ void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_sur
     }
     else if (ppu.draw.y < 240 && ppu.draw.x == 256) {
       ppu.scroll.x = ppu.scroll.temp_x;
+      ppu.scroll.x += GET_BASE_NAMETABLE_ID() & 1 ? 256 : 0;
     }
     else if (ppu.draw.x > 340) { // end of line, wrap
-      //printf("%d scanline ended, clock cycles: %d %d\n", ppu.draw.y, cpu.clock_cycles, ppu.clock_cycles);
       ppu.draw.x = 0;
       ppu.draw.y += 1;
       continue;
     }
     else if (ppu.draw.y == 261) {
       if (ppu.draw.x == 0) ppu.status = 0;
-      else if (ppu.draw.x >= 279 && ppu.draw.x <= 303) ppu.scroll.y = ppu.scroll.temp_y;
+      else if (ppu.draw.x >= 279 && ppu.draw.x <= 303) {
+        ppu.scroll.y = ppu.scroll.temp_y;
+        ppu.scroll.y += GET_BASE_NAMETABLE_ID() & 2 ? 240 : 0;
+      }
     }
     else if (ppu.draw.y > 261) { // end of screen, wrap
       assert(!ppu.draw.x);

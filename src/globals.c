@@ -46,15 +46,17 @@ struct {
   bool nmi_occurred;
 
   struct {
-    uint8_t temp_x;
-    uint8_t temp_y;
+    uint16_t temp_x;
+    uint16_t temp_y;
 
-    uint8_t x;
-    uint8_t y;
+    uint16_t x;
+    uint16_t y;
   } scroll;
 
   struct {
     uint16_t addrs;
+    uint8_t temp_addrs;
+
     uint8_t data[PPU_RAM];
     uint8_t buffer;
   } ram;
