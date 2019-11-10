@@ -31,6 +31,8 @@ struct {
   uint8_t control1;
   uint8_t control2;
 
+  bool chr_ram;
+
   uint8_t mapper;
   uint8_t mirror;
   uint8_t battery;

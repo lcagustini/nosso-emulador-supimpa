@@ -1,4 +1,7 @@
 void writePPUByte(uint16_t addrs, uint8_t data) {
+  if (cartridge.chr_ram && addrs < 0x2000) {
+    cartridge.CHR[addrs] = data;
+  }
   if (addrs >= 0x2000 && addrs < 0x3000) {
     addrs -= 0x2000;
     if (!cartridge.mirror) {

@@ -103,6 +103,12 @@ void loadNESFile(char *filepath) {
   fread(&cartridge.CHR_size, 1, 1, rom_file);
   cartridge.CHR_size *= 0x2000;
 
+  if (cartridge.CHR_size == 0) {
+    cartridge.CHR_size = 0x2000;
+    cartridge.chr_ram = true;
+  }
+  else cartridge.chr_ram = false;
+
   fread(&cartridge.control1, 1, 1, rom_file);
   fread(&cartridge.control2, 1, 1, rom_file);
 
@@ -123,9 +129,11 @@ void loadNESFile(char *filepath) {
   fread(cartridge.CHR, 1, cartridge.CHR_size, rom_file);
 
   cpu.clock_cycles = 0;
+  ppu.clock_cycles = 0;
 
-  printf("PRG size: %X\n", cartridge.PRG_size);
-  printf("CHR size: %X\n", cartridge.CHR_size);
+  printf("Mapper: %X\n", cartridge.mapper);
+  printf("PRG size: %d\n", cartridge.PRG_size);
+  printf("CHR size: %d\n", !cartridge.chr_ram * cartridge.CHR_size);
 }
 
 int main(int argc, char* argv[]) {
