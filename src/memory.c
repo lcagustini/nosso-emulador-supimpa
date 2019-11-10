@@ -46,6 +46,7 @@ mirror:
     else return temp;
   }
   else {
+    ppu.ram.buffer = readPPUByte(0x2000 + (addrs % 0x1000), true);
     addrs = (addrs - 0x3F00) % 0x20;
     if (addrs == 0x10 || addrs == 0x14 || addrs == 0x18 || addrs == 0x1C) addrs -= 0x10;
     return ppu.palette_ram[addrs];
@@ -66,7 +67,7 @@ uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
 
     return ppu_old;
   }
-  if (addrs == 0x2004) return internal_read ? ppu.oam.data[ppu.oam.addrs] : ppu.oam.data[ppu.oam.addrs++];
+  if (addrs == 0x2004) return ppu.oam.data[ppu.oam.addrs];
   if (addrs == 0x2007) {
     uint8_t data = readPPUByte(ppu.ram.addrs, internal_read);
     if (!internal_read) ppu.ram.addrs += GET_VRAM_PPU_INCREMENT() ? 32 : 1;

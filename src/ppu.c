@@ -86,13 +86,11 @@
 
 void oamDMA(uint8_t hibyte) {
   uint16_t addrs = (hibyte << 8);
+  uint16_t oam_addrs = ppu.oam.addrs;
 
-  for (int i = 0; ; i++, ppu.oam.addrs++) {
-    ppu.oam.data[ppu.oam.addrs] = readCPUByte(addrs + i, true);
-    if (ppu.oam.addrs == 0xFF) {
-      ppu.oam.addrs = 0;
-      break;
-    }
+  for (int i = 0; ; i++, oam_addrs++) {
+    ppu.oam.data[oam_addrs] = readCPUByte(addrs + i, true);
+    if (oam_addrs == 0xFF) break;
   }
 
   if (cpu.clock_cycles % 2) cpu.clock_cycles += 1;

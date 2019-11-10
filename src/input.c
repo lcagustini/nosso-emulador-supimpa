@@ -32,11 +32,13 @@ void pollInput() {
 uint8_t getNextInput1() {
   bool bit = input.shift_register1 & BIT0;
   input.shift_register1 >>= 1;
-  return bit | 0b1000000;
+  input.shift_register1 |= 0b10000000;
+  return bit | 0x40;
 }
 
 uint8_t getNextInput2() {
   bool bit = input.shift_register2 & BIT0;
   input.shift_register2 >>= 1;
-  return bit | 0b1000000;
+  input.shift_register2 |= 0b10000000;
+  return bit | 0x40;
 }
