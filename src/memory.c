@@ -46,7 +46,7 @@ mirror:
     else return temp;
   }
   else {
-    ppu.ram.buffer = readPPUByte(0x2000 + (addrs % 0x1000), true);
+    if (!internal_read) ppu.ram.buffer = readPPUByte(0x2000 + (addrs % 0x1000), true);
     addrs = (addrs - 0x3F00) % 0x20;
     if (addrs == 0x10 || addrs == 0x14 || addrs == 0x18 || addrs == 0x1C) addrs -= 0x10;
     return ppu.palette_ram[addrs];
