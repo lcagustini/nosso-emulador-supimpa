@@ -9,6 +9,8 @@ uint32_t grayscale(uint32_t color) {
 }
 
 uint32_t emphasize(uint32_t color) {
+  if (!(ppu.mask & 0b11100000)) return color;
+
   uint8_t emph_b = (ppu.mask & BIT5) >> 5;
   uint8_t emph_g = (ppu.mask & BIT6) >> 6;
   uint8_t emph_r = (ppu.mask & BIT7) >> 7;

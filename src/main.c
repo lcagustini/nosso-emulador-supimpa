@@ -55,7 +55,6 @@ const int nes_palette[64] = {
   0xF8D878, 0xD8F878, 0xB8F8B8, 0xB8F8D8, 0x00FCFC, 0xF8D8F8, 0x000000, 0x000000,
 };
 
-
 #include "globals.c"
 #include "masks.c"
 #include "input.c"
@@ -91,7 +90,7 @@ void loadNESFile(char *filepath) {
 
   FILE *rom_file = fopen(filepath, "rb");
   if (!rom_file) {
-    fprintf(stderr, COLOR_RED "No file found!\n");
+    fprintf(stderr, COLOR_RED "No file found!\n" COLOR_RESET);
     exit(1);
   }
 
@@ -159,7 +158,7 @@ int main(int argc, char* argv[]) {
       screen_surface->format->Bmask, 0);
 
   if (argc <= 1) {
-    fprintf(stderr, COLOR_RED "Rom file needed!\n");
+    fprintf(stderr, COLOR_RED "Rom file needed!\n" COLOR_RESET);
     exit(1);
   }
 

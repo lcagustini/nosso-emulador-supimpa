@@ -97,17 +97,20 @@ void oamDMA(uint8_t hibyte) {
   cpu.clock_cycles += 513;
 }
 
-void decodeTile(uint8_t tile[16], uint8_t decoded_tile[64]) {
-  for (int byte = 0; byte < 8; byte++) {
-    for (int bit = 0; bit < 8; bit++) {
-      decoded_tile[byte*8 + (7-bit)] = ((tile[byte] & (1 << bit)) | ((tile[byte + 8] & (1 << bit)) << 1)) >> bit;
-    }
-  }
+uint8_t decodeTilePixel(uint16_t base_patterntable, uint8_t x, uint8_t y) {
+  uint8_t tile[2];
+  tile[0] = readPPUByte(base_patterntable + y, true);
+  tile[1] = readPPUByte(base_patterntable + y + 8, true);
+
+  x = 7 - x;
+  // 0 -> y; 1 -> y + 8
+  return ((tile[0] & (1 << x)) | ((tile[1] & (1 << x)) << 1)) >> x;
 }
 
 void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
   uint8_t tile_x = (x/8)%64;
-  uint8_t tile_y = (y/8)%60;
+  uint8_t tile_y = (y/8)%64;
+  if (tile_y >= 60) tile_y -= 60;
 
   uint8_t nametable_id = 0;
   if (tile_x >= 32 && tile_y < 30) {
@@ -126,13 +129,6 @@ void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, u
 
   uint8_t pattern_id = readPPUByte(addrs_nametable + 32*tile_y + tile_x, true);
   uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_BACKGROUND_PATTERN_TABLE_ID());
-  uint8_t tile[16];
-  uint8_t decoded_tile[64];
-
-  for (int i = 0; i < 16; i++) {
-    tile[i] = readPPUByte(addrs_patterntable + 16*pattern_id + i, true);
-  }
-  decodeTile(tile, decoded_tile);
 
   uint16_t addrs_attributetable = GET_ATTRIBUTETABLE_ADDRS(nametable_id);
   uint8_t attribute_tile_x = tile_x/4;
@@ -152,7 +148,7 @@ void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, u
   x = x % 8;
   y = y % 8;
 
-  *pixel_palette = decoded_tile[y*8 + x];
+  *pixel_palette = decodeTilePixel(addrs_patterntable + 16*pattern_id, x, y);
 }
 
 uint8_t backgroundPaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_palette) {
@@ -175,13 +171,6 @@ priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, u
         y >= sprite_y && y < sprite_y + 8) {
 
       uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_SPRITE_PATTERN_TABLE_ID());
-      uint8_t tile[16];
-      uint8_t decoded_tile[64];
-
-      for (int i = 0; i < 16; i++) {
-        tile[i] = readPPUByte(addrs_patterntable + 16*tile_number + i, true);
-      }
-      decodeTile(tile, decoded_tile);
 
       *addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
       uint8_t tx = x - sprite_x;
@@ -190,7 +179,7 @@ priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, u
       if (flip_v) ty = 7 - ty;
       if (flip_h) tx = 7 - tx;
 
-      *pixel_palette = decoded_tile[ty*8 + tx];
+      *pixel_palette = decodeTilePixel(addrs_patterntable + 16*tile_number, tx, ty);
       *sprite_id = i;
 
       if (!*pixel_palette) continue;
