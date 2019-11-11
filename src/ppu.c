@@ -109,8 +109,7 @@ uint8_t decodeTilePixel(uint16_t base_patterntable, uint8_t x, uint8_t y) {
 
 void backgroundPaletteIndexAt(uint16_t x, uint16_t y, uint16_t *addrs_palette, uint8_t *pixel_palette) {
   uint8_t tile_x = (x/8)%64;
-  uint8_t tile_y = (y/8)%64;
-  if (tile_y >= 60) tile_y -= 60;
+  uint8_t tile_y = (y/8)%60;
 
   uint8_t nametable_id = 0;
   if (tile_x >= 32 && tile_y < 30) {
