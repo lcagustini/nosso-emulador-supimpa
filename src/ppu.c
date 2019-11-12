@@ -198,7 +198,6 @@ void drawTVScreenPixel(SDL_Surface *draw_surface) {
   uint16_t x = ppu.draw.x + ppu.scroll.x;
   uint16_t y = ppu.draw.y + ppu.scroll.y;
 
-  uint32_t *pixels = draw_surface->pixels;
   uint16_t addrs_palette;
   uint8_t sprite_palette;
   uint8_t backgroud_palette;
@@ -242,6 +241,7 @@ void drawTVScreenPixel(SDL_Surface *draw_surface) {
   if (ppu.mask & BIT0) pixel_color &= 0x30;
 
   uint32_t tv_color = emphasize(nes_palette[pixel_color]);
+  uint32_t *pixels = draw_surface->pixels;
   pixels[(ppu.draw.y-8)*draw_surface->w + ppu.draw.x] = tv_color;
 }
 
@@ -269,10 +269,43 @@ void vblank(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_s
     }
   }
 
+#ifdef PPU_SPRITE_PRINT
+  {
+    int x = 0;
+    int y = 0;
+
+    for (int i = 0; i < 64; i++) {
+      uint8_t tile_number = GET_SPRITE_TILE_NUMBER(i);
+      uint8_t palette = GET_SPRITE_PALETTE(i);
+
+      uint16_t addrs_patterntable = PATTERN_ID_TO_ADDRS(GET_SPRITE_PATTERN_TABLE_ID());
+
+      uint16_t addrs_palette = SPRITE_PALETTE_ID_TO_ADDRS(palette);
+
+      for (uint8_t ty = 0; ty < 8; ty++) {
+        for (uint8_t tx = 0; tx < 8; tx++) {
+          uint8_t pixel_palette = decodeTilePixel(addrs_patterntable + 16*tile_number, tx, ty);
+
+          uint8_t global_palette = spritePaletteIndexToColor(addrs_palette, pixel_palette);
+
+          uint32_t *pixels = draw_surface->pixels;
+          pixels[(y+ty)*draw_surface->w + (x+tx)] = nes_palette[global_palette];
+        }
+      }
+
+      x += 8;
+      if (x >= draw_surface->w) {
+        x = 0;
+        y += 8;
+      }
+    }
+  }
+#endif
+
   // draw frame
   SDL_BlitScaled(draw_surface, NULL, screen_surface, NULL);
 
-#ifdef PPU_CHR_PRINT
+#ifdef PPU_NAMETABLE_PRINT
   for (int tile = 0; tile < 3840; tile++) {
     int tx = 8*(tile % 64);
     int ty = 8*(tile / 64);

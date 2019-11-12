@@ -36,7 +36,8 @@
 
 //#define OPCODE_PRINT
 //#define DEBUG_PRINT
-//#define PPU_CHR_PRINT
+//#define PPU_NAMETABLE_PRINT
+//#define PPU_SPRITE_PRINT
 
 void print(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p);
 void printls(uint8_t a, uint8_t x, uint8_t y, uint16_t sp, uint16_t pc, uint8_t p, uint16_t addr, uint8_t data);
