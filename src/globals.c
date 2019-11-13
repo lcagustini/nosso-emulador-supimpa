@@ -46,6 +46,7 @@ struct {
   bool write_flag;
 
   bool nmi_occurred;
+  uint8_t scanline_sprite_count;
 
   struct {
     uint16_t temp_x;

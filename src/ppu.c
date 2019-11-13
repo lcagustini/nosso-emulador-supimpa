@@ -181,6 +181,8 @@ priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, u
       *pixel_palette = decodeTilePixel(addrs_patterntable + 16*tile_number, tx, ty);
       *sprite_id = i;
 
+      ppu.scanline_sprite_count++;
+
       if (!*pixel_palette) continue;
 
       return priority + 1; // based on sprite_priority enum
@@ -335,12 +337,14 @@ void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_sur
   while (3*cpu.clock_cycles > ppu.clock_cycles) {
     if (ppu.draw.x < 256 && ppu.draw.y >= 8 && ppu.draw.y < 232) {
       drawTVScreenPixel(draw_surface);
+      if (ppu.scanline_sprite_count == 8) ppu.status |= BIT5;
     }
     else if (ppu.draw.y < 240 && ppu.draw.x == 256) {
       ppu.scroll.x = ppu.scroll.temp_x;
       ppu.scroll.x += GET_BASE_NAMETABLE_ID() & 1 ? 256 : 0;
     }
     else if (ppu.draw.x > 340) { // end of line, wrap
+      ppu.scanline_sprite_count = 0;
       ppu.draw.x = 0;
       ppu.draw.y += 1;
       continue;
