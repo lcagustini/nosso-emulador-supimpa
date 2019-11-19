@@ -157,6 +157,7 @@ uint8_t backgroundPaletteIndexToColor(uint16_t addrs_palette, uint8_t pixel_pale
 
 priority_t spritePaletteIndexAt(uint8_t x, uint8_t y, uint16_t *addrs_palette, uint8_t *pixel_palette, uint8_t *sprite_id) {
   // TODO: 8x16 sprites
+  y--; // PPU delays sprites by a scanline
   for (int i = 0; i < 64; i++) {
     uint8_t sprite_x = GET_SPRITE_X(i);
     uint8_t sprite_y = GET_SPRITE_Y(i);
