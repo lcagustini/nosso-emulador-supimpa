@@ -70,7 +70,11 @@ uint8_t readCPUByte(uint16_t addrs, bool internal_read) {
   if (addrs == 0x2004) return ppu.oam.data[ppu.oam.addrs];
   if (addrs == 0x2007) {
     uint8_t data = readPPUByte(ppu.ram.addrs, internal_read);
-    if (!internal_read) ppu.ram.addrs += GET_VRAM_PPU_INCREMENT() ? 32 : 1;
+    if (!internal_read) {
+      ppu.ram.addrs += GET_VRAM_PPU_INCREMENT() ? 32 : 1;
+      ppu.scroll.temp_y += GET_VRAM_PPU_INCREMENT() ? 1 : 0;
+      ppu.scroll.temp_x += GET_VRAM_PPU_INCREMENT() ? 0 : 1;
+    }
     return data;
   }
   if (addrs >= 0x2008 && addrs < 0x4000) readCPUByte(0x2000 + (addrs % 8), internal_read);
@@ -94,17 +98,12 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
   }
   if (addrs == 0x2005) {
     if (ppu.write_flag) ppu.scroll.temp_y = data;
-    else {
-      ppu.scroll.temp_x = data;
-      //ppu.scroll.x = (ppu.scroll.x & (~0b111)) | (data & 0b111);
-    }
+    else ppu.scroll.temp_x = data;
 
     ppu.write_flag = !ppu.write_flag;
   }
   if (addrs == 0x2006) {
-    if (ppu.write_flag) {
-      ppu.ram.addrs = (ppu.ram.addrs & (~0xFF)) | data;
-    }
+    if (ppu.write_flag) ppu.ram.addrs = (ppu.ram.addrs & (~0xFF)) | data;
     else {
       ppu.ram.addrs = (ppu.ram.addrs & (~0xFF00)) | (data << 8);
       ppu.ctrl = (ppu.ctrl & (~0b11)) | ((data >> 2) & 0b11);
@@ -114,7 +113,10 @@ void writeCPUByte(uint16_t addrs, uint8_t data) {
   }
   if (addrs == 0x2007) {
     writePPUByte(ppu.ram.addrs, data);
+
     ppu.ram.addrs += GET_VRAM_PPU_INCREMENT() ? 32 : 1;
+    ppu.scroll.temp_y += GET_VRAM_PPU_INCREMENT() ? 1 : 0;
+    ppu.scroll.temp_x += GET_VRAM_PPU_INCREMENT() ? 0 : 1;
   }
   if (addrs >= 0x2008 && addrs < 0x4000) writeCPUByte(0x2000 + (addrs % 8), data);
   if (addrs == 0x4014) oamDMA(data);
