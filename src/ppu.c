@@ -8,48 +8,24 @@
   )
 
 #define GET_VRAM_PPU_INCREMENT() (ppu.ctrl & BIT2)
-#define SET_VRAM_PPU_INCREMENT(a) (ppu.ctrl = (ppu.ctrl & (~BIT2)) | (a & BIT0))
 
 #define GET_SPRITE_PATTERN_TABLE_ID() (ppu.ctrl & BIT3)
-#define SET_SPRITE_PATTERN_TABLE_ID(a) (ppu.ctrl = (ppu.ctrl & (~BIT3)) | (a & BIT0))
-
 #define GET_BACKGROUND_PATTERN_TABLE_ID() (ppu.ctrl & BIT4)
-#define SET_BACKGROUND_PATTERN_TABLE_ID(a) (ppu.ctrl = (ppu.ctrl & (~BIT4)) | (a & BIT0))
 #define PATTERN_ID_TO_ADDRS(a) (a == 0 ? 0 : 0x1000)
 
 #define GET_SPRITE_SIZE() (ppu.ctrl & BIT5)
-#define SET_SPRITE_SIZE(a) (ppu.ctrl = (ppu.ctrl & (~BIT5)) | (a & BIT0))
 
 #define GET_PPU_MASTER_SELECT() (ppu.ctrl & BIT6)
-#define SET_PPU_MASTER_SELECT(a) (ppu.ctrl = (ppu.ctrl & (~BIT6) | (a & BIT0)))
 
-#define GET_NMI_ENABLE() (ppu.ctrl & BIT7)
-#define SET_NMI_ENABLE(a) (ppu.ctrl = (ppu.ctrl & (~BIT7)) | (a & BIT0))
+#define GET_NMI_ENABLED() (ppu.ctrl & BIT7)
 
 // PPUMASK
-#define GET_GRAYSCALE_ENABLE() (ppu.mask & BIT0)
-#define SET_GRAYSCALE_ENABLE(a) (ppu.mask = (ppu.mask & (~BIT0)) | (a & BIT0))
+#define GET_GRAYSCALE_ENABLED() (ppu.mask & BIT0)
 
 #define GET_BACKGROUND_MASK() (ppu.mask & BIT1)
-#define SET_BACKGROUND_MASK(a) (ppu.mask = (ppu.mask & (~BIT1)) | (a & BIT0))
-
 #define GET_SPRITE_MASK() (ppu.mask & BIT2)
-#define SET_SPRITE_MASK(a) (ppu.mask = (ppu.mask & (~BIT2)) | (a & BIT0))
 
-#define GET_BACKGROUND_ENABLE() (ppu.mask & BIT3)
-#define SET_BACKGROUND_ENABLE(a) (ppu.mask = (ppu.mask & (~BIT3)) | (a & BIT0))
-
-#define GET_SPRITE_ENABLE() (ppu.mask & BIT4)
-#define SET_SPRITE_ENABLE(a) (ppu.mask = (ppu.mask & (~BIT4)) | (a & BIT0))
-
-#define GET_RED_FILTER() (ppu.mask & BIT5)
-#define SET_RED_FILTER(a) (ppu.mask = (ppu.mask & (~BIT5)) | (a & BIT0))
-
-#define GET_GREEN_FILTER() (ppu.mask & BIT6)
-#define SET_GREEN_FILTER(a) (ppu.mask = (ppu.mask & (~BIT6)) | (a & BIT0))
-
-#define GET_BLUE_FILTER() (ppu.mask & BIT7)
-#define SET_BLUE_FILTER(a) (ppu.mask = (ppu.mask & (~BIT7)) | (a & BIT0))
+#define GET_RENDER_ENABLED() (ppu.mask & (BIT3 | BIT4))
 
 // OAM
 #define GET_SPRITE_Y(a) (ppu.oam.data[a*4+0])
@@ -59,12 +35,6 @@
 #define GET_SPRITE_FLIP_H(a) (((ppu.oam.data[a*4+2]) & (BIT6)) >> 6)
 #define GET_SPRITE_FLIP_V(a) (((ppu.oam.data[a*4+2]) & (BIT7)) >> 7)
 #define GET_SPRITE_X(a) ((ppu.oam.data[a*4+3]))
-
-// PPUSTATUS
-// TODO: Implement the 5 least significant bits
-#define GET_SPRITE_OVERFLOW() (ppu.status & BIT5)
-#define GET_SPRITE_0_HIT() (ppu.status & BIT6)
-#define GET_VBLANK_START() (ppu.status & BIT7)
 
 #define GET_ATTRIBUTETABLE_ADDRS(a) ( \
     a == 0 ? 0x23C0 : ( \
@@ -222,26 +192,26 @@ void drawTVScreenPixel(SDL_Surface *draw_surface) {
   }
 
   uint32_t pixel_color = readPPUByte(0x3F00, true);
-  switch ((ppu.mask & 0b11000) >> 3) {
+  switch (GET_RENDER_ENABLED() >> 3) {
     case 1:
-      if (ppu.draw.x >= 8 || (ppu.mask & BIT1)) pixel_color = backgroud_color;
+      if (ppu.draw.x >= 8 || GET_BACKGROUND_MASK()) pixel_color = backgroud_color;
       break;
     case 2:
-      if (ppu.draw.x >= 8 || (ppu.mask & BIT2)) pixel_color = sprite_color;
+      if (ppu.draw.x >= 8 || GET_SPRITE_MASK()) pixel_color = sprite_color;
       break;
     case 3:
       if (sprite_priority == P_OVER_BG || (sprite_priority == P_UNDER_BG && !backgroud_palette)) {
-        if (ppu.draw.x >= 8 || (ppu.mask & BIT2)) pixel_color = sprite_color;
+        if (ppu.draw.x >= 8 || GET_SPRITE_MASK()) pixel_color = sprite_color;
       }
       else {
-        if (ppu.draw.x >= 8 || (ppu.mask & BIT1)) pixel_color = backgroud_color;
+        if (ppu.draw.x >= 8 || GET_BACKGROUND_MASK()) pixel_color = backgroud_color;
       }
       break;
     default:
       break;
   }
 
-  if (ppu.mask & BIT0) pixel_color &= 0x30;
+  if (GET_GRAYSCALE_ENABLED()) pixel_color &= 0x30;
 
   uint32_t tv_color = emphasize(nes_palette[pixel_color]);
   uint32_t *pixels = draw_surface->pixels;

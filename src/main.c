@@ -180,7 +180,7 @@ reset:
     draw(window, draw_surface, screen_surface);
 
     checkForInterrupts();
-    if (ppu.nmi_occurred && (ppu.ctrl & BIT7)) cpu.interrupt.nmi = true;
+    if (ppu.nmi_occurred && GET_NMI_ENABLED()) cpu.interrupt.nmi = true;
   }
 
   free(cartridge.PRG);
