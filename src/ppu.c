@@ -323,7 +323,7 @@ void draw(SDL_Window *window, SDL_Surface *draw_surface, SDL_Surface *screen_sur
     else if (ppu.draw.y == 261) {
       if (ppu.draw.x == 0) ppu.status = 0;
       else if (ppu.draw.x >= 279 && ppu.draw.x <= 303) {
-        ppu.scroll.y = ppu.scroll.temp_y;
+        ppu.scroll.y = (uint8_t) (ppu.scroll.temp_y + !cartridge.mirror);
         ppu.scroll.y += GET_BASE_NAMETABLE_ID() & 2 ? 240 : 0;
       }
     }

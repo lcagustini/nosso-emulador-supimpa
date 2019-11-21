@@ -132,6 +132,7 @@ void loadNESFile(char *filepath) {
   ppu.clock_cycles = 0;
 
   printf("Mapper: %X\n", cartridge.mapper);
+  printf("Mirror: %X\n", cartridge.mirror);
   printf("PRG size: %d\n", cartridge.PRG_size);
   printf("CHR size: %d\n", !cartridge.chr_ram * cartridge.CHR_size);
 }
